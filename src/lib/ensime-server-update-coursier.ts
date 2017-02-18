@@ -98,8 +98,7 @@ export default function updateServer(tempdir: string, failure: (string, int) => 
           runCoursier()
         } else {
           logger.trace("no pre-existing coursier binary, downloading: " + tempdir)
-          // # coursierUrl = 'https://git.io/vgvpD' # Java 7
-          const coursierUrl = "https://git.io/v2L2P" // Java 6
+          const coursierUrl = 'https://git.io/vgvpD' // Java 7
 
           download({ mode: '0755' }).get(coursierUrl).dest(tempdir).rename('coursier').run((err) => {
             if (err) {
