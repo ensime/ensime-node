@@ -9,12 +9,19 @@ import {ServerConnection} from './server-api/server-connection'
 
 export interface ServerStarter {
     (project: DotEnsime): PromiseLike<ChildProcess>
-} 
+}
 
 export interface ServerSettings {
     persistentFileArea: string
     notifier? : () => any
     serverVersion? : string
+}
+
+export interface ProxySettings {
+  host: string
+  port: number
+  user?: string
+  password?: string
 }
 
 export interface DotEnsime {

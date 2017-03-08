@@ -1,6 +1,6 @@
 export {InstanceManager, EnsimeInstance, makeInstanceOf} from './instance';
 
-export {DotEnsime, ServerStarter, pid, serverProtocol} from './types';
+export {DotEnsime, ServerStarter, pid, serverProtocol, ProxySettings} from './types';
 
 export import formatting = require('./formatting');
 export {default as ensimeServerUpdate} from './ensime-server-update-coursier';
@@ -11,4 +11,3 @@ export const startServerFromAssemblyJar = ensimeServerStartup.startServerFromAss
 export const startServerFromFile = ensimeServerStartup.startServerFromFile;
 
 export {default as clientStarterFromServerStarter} from './ensime-client-startup';
-  

@@ -5,9 +5,28 @@ import * as Promise from 'bluebird';
 import {spawn} from 'child_process';
 import _ = require('lodash');
 import loglevel = require('loglevel');
-import {DotEnsime} from './types';
+import {DotEnsime, ProxySettings} from './types';
 const download = require('download');
 import {ensureExists} from './file-utils'
+
+function proxyArgs(proxySettings?: ProxySettings) {
+  const args = []
+  if (proxySettings != undefined) {
+    args.push('-Dhttp.proxyHost=' + proxySettings.host);
+    args.push('-Dhttps.proxyHost=' + proxySettings.host);
+    args.push('-Dhttp.proxyPort=' + proxySettings.port);
+    args.push('-Dhttps.proxyPort=' + proxySettings.port);
+    if (proxySettings.user != undefined) {
+      args.push('-Dhttp.proxyUser=' + proxySettings.user);
+      args.push('-Dhttps.proxyUser=' + proxySettings.user);
+    }
+    if (proxySettings.password != undefined) {
+      args.push('-Dhttp.proxyPassword=' + proxySettings.password);
+      args.push('-Dhttps.proxyPassword=' + proxySettings.password);
+    }
+    return args
+  }
+}
 
 function javaArgs(dotEnsime: DotEnsime, serverVersion: String, updateChanging: boolean) {
   const scalaVersion = dotEnsime.scalaVersion
@@ -31,11 +50,10 @@ function javaArgs(dotEnsime: DotEnsime, serverVersion: String, updateChanging: b
     '-V', `org.scala-lang:scala-reflect:${scalaVersion}`,
     '-V', `org.scala-lang:scalap:${scalaVersion}`
   );
-  return args;
 }
 
 // Updates ensime server, invoke callback when done
-export default function updateServer(tempdir: string, failure: (string, int) => void, getPidLogger: () => (string) => void) {
+export default function updateServer(tempdir: string, failure: (string, int) => void, getPidLogger: () => (string) => void, proxySettings?:ProxySettings) {
   const logger = loglevel.getLogger('ensime.server-update')
   logger.debug('update ensime server, tempdir: ' + tempdir)
 
@@ -44,7 +62,7 @@ export default function updateServer(tempdir: string, failure: (string, int) => 
 
     return ensureExists(parsedDotEnsime.cacheDir).then((cacheDir) => {
 
-      
+
       console.log('cachedir: ', cacheDir)
       return new Promise((resolve, reject) => {
         function runCoursier() {
@@ -55,7 +73,7 @@ export default function updateServer(tempdir: string, failure: (string, int) => 
 
           let spaceSeparatedClassPath = ""
 
-          const args = javaArgs(parsedDotEnsime, ensimeServerVersion, true)
+          const args = proxyArgs(proxySettings).concat(javaArgs(parsedDotEnsime, ensimeServerVersion, true))
 
           logger.debug('java command to spawn', javaCmd, args, tempdir)
           const pid = spawn(javaCmd, args, { cwd: tempdir })
@@ -114,5 +132,4 @@ export default function updateServer(tempdir: string, failure: (string, int) => 
       });
     });
   }
-
 }
