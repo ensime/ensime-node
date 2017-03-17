@@ -9,6 +9,7 @@
         "test": "gulp test",
         "integration": "gulp integration",
         "it": "gulp it",
+        "lint": "gulp lint",
         "watch": "gulp watch",
         "clean": "gulp clean"
     },
