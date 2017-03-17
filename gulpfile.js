@@ -1,16 +1,16 @@
-var gulp = require('gulp');
-var ts = require('gulp-typescript');
-var merge = require('merge2');
-var sourcemaps = require('gulp-sourcemaps');
-var coffee = require('gulp-coffee');
-var coffeelint = require('gulp-coffeelint');
-var jasmine = require('gulp-jasmine');
-var rimraf = require('rimraf');
-var runSequence = require('run-sequence');
-var tsProject = ts.createProject('tsconfig.json');
+const gulp = require('gulp');
+const ts = require('gulp-typescript');
+const merge = require('merge2');
+const sourcemaps = require('gulp-sourcemaps');
+const coffee = require('gulp-coffee');
+const coffeelint = require('gulp-coffeelint');
+const jasmine = require('gulp-jasmine');
+const rimraf = require('rimraf');
+const runSequence = require('run-sequence');
+const tsProject = ts.createProject('tsconfig.json');
 
 function compileTs() {
-    var tsResult = tsProject.src() // instead of gulp.src(...) 
+    const tsResult = tsProject.src() // instead of gulp.src(...) 
         .pipe(sourcemaps.init())
         .pipe(ts(tsProject));
  
@@ -25,35 +25,31 @@ function compileTs() {
 
 gulp.task('compile-ts', compileTs);
 
-gulp.task('compile-coffee', function() {
-    return gulp.src('src/**/*.coffee')
-    .pipe(sourcemaps.init())
-    .pipe(coffee())
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('release/js'));
-});
+gulp.task('compile-coffee', () => 
+    gulp.src('src/**/*.coffee')
+        .pipe(sourcemaps.init())
+        .pipe(coffee())
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest('release/js'))
+);
 
 // Just copy js to dist folder
-gulp.task('copy-js', function() {
-    return gulp
-        .src('./src/**/*.js')
-        .pipe(gulp.dest('release/js'));
-});
+gulp.task('copy-js', () => 
+    gulp.src('./src/**/*.js')
+        .pipe(gulp.dest('release/js'))
+);
 
-gulp.task('coffee-lint', function() {
+gulp.task('coffee-lint', () => 
     gulp.src('./src/*.coffee')
         .pipe(coffeelint())
-        .pipe(coffeelint.reporter());
-});
+        .pipe(coffeelint.reporter())
+);
 
-gulp.task('integration', ['build', 'it'], function() {
-});
+gulp.task('integration', ['build', 'it']);
 
-gulp.task('it', function() {
-	gulp.src('./release/js/spec-integration/**/*.js').pipe(jasmine());
-});
+gulp.task('it', () => gulp.src('./release/js/spec-integration/**/*.js').pipe(jasmine()));
 
-gulp.task('test', function() {
+gulp.task('test', () => {
     console.log("starting tests…");
 	return gulp.src('./release/js/spec/**/*.js').pipe(jasmine({includeStackTrace: false}));
 });
@@ -62,20 +58,12 @@ gulp.task('compile', ['compile-ts', 'compile-coffee']);
 gulp.task('build', ['compile', 'copy-js']);
 gulp.task('lint', ['coffee-lint']);
 
-gulp.task('clean', function(cb) {
-    return rimraf('./release', cb);
-});
+gulp.task('clean', cb => rimraf('./release', cb));
 
 
-gulp.task('default', function(cb) {
-    runSequence(['clean, build'], cb);
-});
+gulp.task('default', cb => runSequence(['clean, build'], cb));
 
-gulp.task('watch', ['build'], function(cb) {
-    gulp.watch('src/**/*.ts', function(vinyl) {
-        runSequence('compile-ts', 'test', function() {});
-    });
-    gulp.watch('src/**/*.coffee', function(vinyl) {
-        runSequence('compile-coffee', 'test', function() {});
-    });
+gulp.task('watch', ['build'], cb => {
+    gulp.watch('src/**/*.ts', vinyl => runSequence('compile-ts', 'test', () => {}));
+    gulp.watch('src/**/*.coffee', vinyl => runSequence('compile-coffee', 'test', () => {}));
 });
