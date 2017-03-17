@@ -1,2 +1,2 @@
-declare var lisp: any
-export = lisp
+declare var lisp: any;
+export = lisp;
