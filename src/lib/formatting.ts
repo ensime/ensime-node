@@ -1,36 +1,36 @@
-import api = require('./server-api/server-protocol');
+import api = require('./server-api/server-protocol')
 
-import _ = require('lodash');
+import _ = require('lodash')
 
-const functionMatcher = new RegExp('scala\\.Function\\d{1,2}');
+const functionMatcher = new RegExp('scala\\.Function\\d{1,2}')
 // const scalaPackageMatcher = new RegExp('scala\\.([\\s\\S]*)');
-const refinementMatcher = new RegExp('(.*)\\$<refinement>'); // scalaz.syntax.ApplyOps$<refinement>
-const tupleMatcher = /^\(.*\)/;
+const refinementMatcher = new RegExp('(.*)\\$<refinement>') // scalaz.syntax.ApplyOps$<refinement>
+const tupleMatcher = /^\(.*\)/
 
-export const fixQualifiedTypeName = (theType) => {
-    const refinementMatch = refinementMatcher.exec(theType.fullName);
+export const fixQualifiedTypeName = theType => {
+    const refinementMatch = refinementMatcher.exec(theType.fullName)
     if (refinementMatch) {
-        return refinementMatch[1];
+        return refinementMatch[1]
     } else {
-        return theType.fullName;
+        return theType.fullName
     }
-};
+}
 
 export function fixShortTypeName(theType: api.Type) {
-    const refinementMatch = refinementMatcher.exec(theType.fullName);
+    const refinementMatch = refinementMatcher.exec(theType.fullName)
     if (refinementMatch) {
-        return _.last(_.split(theType.fullName, '.'));
+        return _.last(_.split(theType.fullName, '.'))
     } else {
-        return typeConstructorFromName(theType.name);
+        return typeConstructorFromName(theType.name)
     }
 }
 
 export function typeConstructorFromType(type: api.Type) {
-    return typeConstructorFromName(type.name);
+    return typeConstructorFromName(type.name)
 }
 
 export function typeConstructorFromName(name: string) {
-    return _.replace(name, /\[.*\]/, '');
+    return _.replace(name, /\[.*\]/, '')
 }
 
 // # For hover
@@ -38,66 +38,66 @@ export function typeConstructorFromName(name: string) {
 export const formatTypeWith = (typeNameFormatter: (x: api.Type) => string) => (theType: any) => {
     function recur(theType) {
 
-        const formatParam = (param) => {
-            const type = recur(param[1]);
-            return `${param[0]}: ${type}`;
-        };
+        const formatParam = param => {
+            const type = recur(param[1])
+            return `${param[0]}: ${type}`
+        }
 
-        const formatParamSection = (paramSection) => {
-            const p = paramSection.params.map(formatParam);
-            return p.join(', ');
-        };
+        const formatParamSection = paramSection => {
+            const p = paramSection.params.map(formatParam)
+            return p.join(', ')
+        }
 
-        const formatParamSections = (paramSections) => {
-            const sections = paramSections.map(formatParamSection);
-            return '(' + sections.join(')(') + ')';
-        };
+        const formatParamSections = paramSections => {
+            const sections = paramSections.map(formatParamSection)
+            return '(' + sections.join(')(') + ')'
+        }
 
-        const formatBasicType = (theType) => {
-            const name = typeNameFormatter(theType);
+        const formatBasicType = theType => {
+            const name = typeNameFormatter(theType)
 
-            const typeArgs = theType.typeArgs;
+            const typeArgs = theType.typeArgs
             if (!typeArgs || typeArgs.length === 0) {
-                return name;
+                return name
             } else {
-                const formattedTypeArgs = typeArgs.map(recur);
+                const formattedTypeArgs = typeArgs.map(recur)
                 if (theType.fullName === 'scala.<byname>') {
-                    return '=> ' + formattedTypeArgs.join(', ');
+                    return '=> ' + formattedTypeArgs.join(', ')
                 } else if (theType.fullName === 'scala.<repeated>') {
-                    return formattedTypeArgs.join(', ') + '*';
+                    return formattedTypeArgs.join(', ') + '*'
                 } else if (theType.fullName === 'scala.Function1') {
-                    const i = formattedTypeArgs[0];
-                    const o = formattedTypeArgs[1];
-                    return i + ' => ' + o;
+                    const i = formattedTypeArgs[0]
+                    const o = formattedTypeArgs[1]
+                    return i + ' => ' + o
                 } else if (functionMatcher.test(theType.fullName)) {
-                    const result = _.last(formattedTypeArgs);
-                    const params = _.initial(formattedTypeArgs);
-                    return `(${params.join(', ')}) => ${result}`;
+                    const result = _.last(formattedTypeArgs)
+                    const params = _.initial(formattedTypeArgs)
+                    return `(${params.join(', ')}) => ${result}`
                 } else if (tupleMatcher.test(theType.name)) {
-                    return `(${formattedTypeArgs.join(', ')})`;
+                    return `(${formattedTypeArgs.join(', ')})`
                 } else {
-                    return name + `[${formattedTypeArgs.join(', ')}]`;
+                    return name + `[${formattedTypeArgs.join(', ')}]`
                 }
             }
-        };
+        }
 
         if (theType.typehint === 'ArrowTypeInfo') {
-            return formatParamSections(theType.paramSections) + ': ' + recur(theType.resultType);
+            return formatParamSections(theType.paramSections) + ': ' + recur(theType.resultType)
         } else if (theType.typehint === 'BasicTypeInfo') {
-            return formatBasicType(theType);
+            return formatBasicType(theType)
         }
     }
-    return recur(theType);
-};
+    return recur(theType)
+}
 
 export function formatImplicitInfo(info: api.ImplicitParamInfo | api.ImplicitConversionInfo): string {
     if (info.typehint === 'ImplicitParamInfo') {
-        const implicitParamInfo = info as api.ImplicitParamInfo;
-        return `Implicit parameters added to call of ${implicitParamInfo.fun.localName}: (${_.map(implicitParamInfo.params, (p) => p.localName).join(', ')})`;
+        const implicitParamInfo = info as api.ImplicitParamInfo
+        return `Implicit parameters added to call of ${implicitParamInfo.fun.localName}: (${_.map(implicitParamInfo.params, p => p.localName).join(', ')})`
     } else if (info.typehint === 'ImplicitConversionInfo') {
-        const implicitConversionInfo = info as api.ImplicitConversionInfo;
-        return `Implicit conversion: ${implicitConversionInfo.fun.localName}`;
+        const implicitConversionInfo = info as api.ImplicitConversionInfo
+        return `Implicit conversion: ${implicitConversionInfo.fun.localName}`
     }
 }
 
-export const formatType = formatTypeWith(typeConstructorFromType);
+export const formatType = formatTypeWith(typeConstructorFromType)

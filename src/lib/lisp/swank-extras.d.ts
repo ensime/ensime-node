@@ -1,2 +1,2 @@
-declare var swankExtras: any;
-export = swankExtras;
+declare var swankExtras: any
+export = swankExtras

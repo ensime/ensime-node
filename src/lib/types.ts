@@ -1,25 +1,23 @@
-import {ChildProcess} from 'child_process';
-export type pid = string;
-export import serverProtocol = require('./server-api/server-protocol');
+import {ChildProcess} from 'child_process'
+export type pid = string
+export import serverProtocol = require('./server-api/server-protocol')
 
-export interface ServerStarter {
-    (project: DotEnsime): PromiseLike<ChildProcess>;
-}
+export type ServerStarter = (project: DotEnsime) => PromiseLike<ChildProcess>
 
 export interface ServerSettings {
-    persistentFileArea: string;
-    notifier?: () => any;
-    serverVersion?: string;
+    persistentFileArea: string
+    notifier?: () => any
+    serverVersion?: string
 }
 
 export interface ProxySettings {
-    host: string;
-    port: number;
-    user?: string;
-    password?: string;
+    host: string
+    port: number
+    user?: string
+    password?: string
 }
 
-export class DotEnsime {
+export interface DotEnsime {
     name: string
     scalaVersion: string
     scalaEdition: string
