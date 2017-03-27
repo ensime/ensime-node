@@ -7,6 +7,6 @@ export import dotEnsimeUtils = require('./dotensime-utils')
 export import fileUtils = require('./file-utils')
 import * as ensimeServerStartup from './server-startup'
 export const startServerFromAssemblyJar = ensimeServerStartup.startServerFromAssemblyJar
-export const startServerFromFile = ensimeServerStartup.startServerFromFile
+export const startServerFromDotEnsimeCP = ensimeServerStartup.startServerFromDotEnsimeCP
 
 export {default as clientStarterFromServerStarter} from './ensime-client-startup'

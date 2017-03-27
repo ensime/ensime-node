@@ -11,8 +11,8 @@ const log = loglevel.getLogger('server-startup')
 /**
  *  Make an array of java command line args for spawn
  */
-export function javaArgsOf(dotEnsime: DotEnsime, ensimeServerFlags = ''): string[] {
-  const args = ['-classpath', dotEnsime.serverJars.join(path.sep), `-Densime.config=${dotEnsime.dotEnsimePath}`]
+export function javaArgsOf(classpath: string[], dotEnsimePath: string, ensimeServerFlags = ''): string[] {
+  const args = ['-classpath', classpath.join(path.delimiter) , `-Densime.config=${dotEnsimePath}`]
 
   if (ensimeServerFlags) {
     args.push(ensimeServerFlags) // ## Weird, but extra " " broke everyting
@@ -24,10 +24,6 @@ export function javaArgsOf(dotEnsime: DotEnsime, ensimeServerFlags = ''): string
 
 export function javaCmdOf(dotEnsime: DotEnsime) {
     return path.join(dotEnsime.javaHome, 'bin', 'java')
-}
-
-function spawnServer(javaCmd: string, args: string[], detached = false) {
-    return spawn(javaCmd, args, { detached })
 }
 
 function logServer(pid, cacheDir) {
@@ -48,11 +44,12 @@ function logServer(pid, cacheDir) {
 export function startServerFromClasspath(classpath: string[], dotEnsime: DotEnsime, serverVersion: string, serverFlags = ''): PromiseLike<ChildProcess> {
   return new Promise<ChildProcess>((resolve, reject) => {
     const cmd = javaCmdOf(dotEnsime)
-    const args = javaArgsOf(dotEnsime, serverFlags)
+    
+    const args = javaArgsOf(classpath, dotEnsime.dotEnsimePath, serverFlags)
     log.debug(`Starting Ensime server with ${cmd} ${_.join(args, ' ')}`)
 
     ensureExists(dotEnsime.cacheDir).then( () => {
-      const pid = spawnServer(cmd, args)
+      const pid = spawn(cmd, args)
       logServer(pid, dotEnsime.cacheDir)
       resolve(pid)
     })

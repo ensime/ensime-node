@@ -10,22 +10,16 @@ import {startServerFromClasspath} from './server-startup-utils'
 const log = loglevel.getLogger('ensime.startup')
 
 // Start ensime server from given classpath file
-export function startServerFromFile(
-    classpathFile: string,
+export function startServerFromDotEnsimeCP(
     dotEnsime: DotEnsime,
     ensimeServerVersion: string, ensimeServerFlags = ''
 ): PromiseLike<ChildProcess> {
     log.debug('starting server from file')
     return new Promise<ChildProcess>((resolve, reject) => {
-        fs.readFile(classpathFile, { encoding: 'utf8' }, (err, classpathFileContents) => {
-            if (err) {
-                reject(err)
-            }
-            const classpathList = _.split(classpathFileContents, path.delimiter)
-            const pid = startServerFromClasspath(classpathList, dotEnsime, ensimeServerVersion, ensimeServerFlags)
+        dotEnsime.serverJars
+            const pid = startServerFromClasspath(dotEnsime.serverJars, dotEnsime, ensimeServerVersion, ensimeServerFlags)
             pid.then(resolve)
         })
-    })
 }
 
 export function startServerFromAssemblyJar(assemblyJar: string, dotEnsime: DotEnsime, ensimeServerVersion: string = '1.0.0', ensimeServerFlags = '') {
