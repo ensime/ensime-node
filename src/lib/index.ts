@@ -3,7 +3,6 @@ export {InstanceManager, EnsimeInstance, makeInstanceOf} from './instance';
 export {DotEnsime, ServerStarter, pid, serverProtocol, ProxySettings} from './types';
 
 export import formatting = require('./formatting');
-export {default as ensimeServerUpdate} from './ensime-server-update-coursier';
 export import dotEnsimeUtils = require('./dotensime-utils');
 export import fileUtils = require('./file-utils');
 import * as ensimeServerStartup from './server-startup';

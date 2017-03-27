@@ -20,26 +20,27 @@ function readDotEnsime(path: string): PromiseLike<string> {
 export function parseDotEnsime(path: string): PromiseLike<DotEnsime> {
     // scala version from .ensime config file of project
     return readDotEnsime(path).then((dotEnsime) => {
-
-        const dotEnsimeLisp = lisp.readFromString(dotEnsime);
-        const dotEnsimeJs = sexpToJObject(dotEnsimeLisp);
-        const subprojects = dotEnsimeJs[':subprojects'];
-        const sourceRoots = _.flattenDeep(_.map(subprojects, (sp) => sp[':source-roots']));
-        const scalaVersion = dotEnsimeJs[':scala-version'];
-        const scalaEdition = scalaVersion.substring(0, 4);
-
-        return {
-            cacheDir: dotEnsimeJs[':cache-dir'] as string,
-            compilerJars: dotEnsimeJs[':scala-compiler-jars'] as string,
-            dotEnsimePath: path as string,
-            javaFlags: dotEnsimeJs[':java-flags'] as string,
-            javaHome: dotEnsimeJs[':java-home'] as string,
-            name: dotEnsimeJs[':name'] as string,
-            rootDir: dotEnsimeJs[':root-dir'] as string,
-            scalaEdition: scalaEdition as string,
-            scalaVersion: scalaVersion as string,
-            sourceRoots: sourceRoots as [string],
-        };
+    
+        const dotEnsimeLisp = lisp.readFromString(dotEnsime)
+        const dotEnsimeJs = sexpToJObject(dotEnsimeLisp)
+        const subprojects = dotEnsimeJs[':subprojects']
+        const sourceRoots = _.flattenDeep(_.map(subprojects, (sp) => sp[':source-roots']))
+        const scalaVersion = dotEnsimeJs[':scala-version']
+        const scalaEdition = scalaVersion.substring(0, 4)
+        
+        return <DotEnsime> {
+            name: <string> dotEnsimeJs[':name'],
+            scalaVersion:  <string> scalaVersion,
+            scalaEdition: <string> scalaEdition,
+            javaHome:  <string> dotEnsimeJs[':java-home'],
+            javaFlags: <string> dotEnsimeJs[':java-flags'],
+            rootDir: <string> dotEnsimeJs[':root-dir'],
+            cacheDir: <string> dotEnsimeJs[':cache-dir'],
+            compilerJars: <string> dotEnsimeJs[':scala-compiler-jars'],
+            dotEnsimePath: <string> path,
+            sourceRoots: <[string]> sourceRoots,
+            serverJars: dotEnsimeJs[':ensime-server-jars'],
+        }
     });
 }
 

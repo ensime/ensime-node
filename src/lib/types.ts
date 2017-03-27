@@ -19,15 +19,16 @@ export interface ProxySettings {
     password?: string;
 }
 
-export interface DotEnsime {
-    name: string;
-    scalaVersion: string;
-    scalaEdition: string;
-    javaHome: string;
-    javaFlags: string;
-    rootDir: string;
-    cacheDir: string;
-    compilerJars: string;
-    dotEnsimePath: string;
-    sourceRoots: [string];
+export class DotEnsime {
+    name: string
+    scalaVersion: string
+    scalaEdition: string
+    javaHome: string
+    javaFlags: string
+    rootDir: string
+    cacheDir: string
+    compilerJars: string
+    dotEnsimePath: string
+    sourceRoots: [string]
+    serverJars: [string]
 }
