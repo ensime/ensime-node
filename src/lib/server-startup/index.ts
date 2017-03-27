@@ -16,13 +16,12 @@ export function startServerFromDotEnsimeCP(
 ): PromiseLike<ChildProcess> {
     log.debug('starting server from file')
     return new Promise<ChildProcess>((resolve, reject) => {
-        dotEnsime.serverJars
-            const pid = startServerFromClasspath(dotEnsime.serverJars, dotEnsime, ensimeServerVersion, ensimeServerFlags)
+            const pid = startServerFromClasspath(dotEnsime.serverJars, dotEnsime, ensimeServerFlags)
             pid.then(resolve)
         })
 }
 
-export function startServerFromAssemblyJar(assemblyJar: string, dotEnsime: DotEnsime, ensimeServerVersion: string = '1.0.0', ensimeServerFlags = '') {
+export function startServerFromAssemblyJar(assemblyJar: string, dotEnsime: DotEnsime, ensimeServerFlags = '') {
     const cp = [assemblyJar].concat(dotEnsime.compilerJars)
-    return startServerFromClasspath(cp, dotEnsime, ensimeServerVersion, ensimeServerFlags)
+    return startServerFromClasspath(cp, dotEnsime, ensimeServerFlags)
 }

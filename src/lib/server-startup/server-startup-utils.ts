@@ -41,10 +41,10 @@ function logServer(pid, cacheDir) {
     })
 }
 
-export function startServerFromClasspath(classpath: string[], dotEnsime: DotEnsime, serverVersion: string, serverFlags = ''): PromiseLike<ChildProcess> {
+export function startServerFromClasspath(classpath: string[], dotEnsime: DotEnsime, serverFlags = ''): PromiseLike<ChildProcess> {
   return new Promise<ChildProcess>((resolve, reject) => {
     const cmd = javaCmdOf(dotEnsime)
-    
+
     const args = javaArgsOf(classpath, dotEnsime.dotEnsimePath, serverFlags)
     log.debug(`Starting Ensime server with ${cmd} ${_.join(args, ' ')}`)
 
