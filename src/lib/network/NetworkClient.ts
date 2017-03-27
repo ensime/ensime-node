@@ -19,15 +19,10 @@ export class TcpClient implements NetworkClient {
 export class WebsocketClient implements NetworkClient {
     private websocket: WebSocket
 
-    constructor(httpPort: string, onConnected: () => any, onMsg: (msg: string) => any, serverVersion: string = '1.0') {
+    constructor(httpPort: string, onConnected: () => any, onMsg: (msg: string) => any) {
         const log = loglevel.getLogger('ensime-client')
 
-        // Since 2.0
-        if (serverVersion && serverVersion >= '2') {
-            this.websocket = new WebSocket('ws://localhost:' + httpPort + '/websocket', ['jerky'])
-        } else {
-            this.websocket = new WebSocket('ws://localhost:' + httpPort + '/jerky')
-        }
+        this.websocket = new WebSocket('ws://localhost:' + httpPort + '/websocket', ['jerky'])
 
         this.websocket.on('open', () => {
             log.debug('connecting websocket…')

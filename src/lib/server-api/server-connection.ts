@@ -19,7 +19,7 @@ export interface ServerConnection {
     post: (msg: any) => PromiseLike<Typehinted>
 }
 
-export function createConnection(httpPort: string, generalMsgHandler, serverVersion, serverPid?): PromiseLike<ServerConnection> {
+export function createConnection(httpPort: string, generalMsgHandler, serverPid?): PromiseLike<ServerConnection> {
     const deferredConnection = Promise.defer<ServerConnection>()
 
     const callbackMap: { [callId: string]: Promise.Resolver<any> } = {}
@@ -59,7 +59,7 @@ export function createConnection(httpPort: string, generalMsgHandler, serverVers
         }
     }
 
-    const netClient = new WebsocketClient(httpPort, onConnect, handleIncoming, serverVersion)
+    const netClient = new WebsocketClient(httpPort, onConnect, handleIncoming)
 
     /**
      * Kills server if it was spawned from here.
