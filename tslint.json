@@ -27,6 +27,7 @@
       "check-format",
       "allow-leading-underscore",
       "allow-pascal-case"
-    ]
+    ],
+    "semicolon": [true, "never"]
   }
 }
