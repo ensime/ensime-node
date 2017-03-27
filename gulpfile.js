@@ -1,5 +1,6 @@
 const gulp = require('gulp');
 const ts = require('gulp-typescript');
+const tslint = require('gulp-tslint');
 const merge = require('merge2');
 const sourcemaps = require('gulp-sourcemaps');
 const coffee = require('gulp-coffee');
@@ -24,6 +25,14 @@ function compileTs() {
 }
 
 gulp.task('compile-ts', compileTs);
+
+gulp.task('ts-lint', () => 
+    gulp.src('src/lib/**/*.ts')
+        .pipe(tslint({
+            formatter: "verbose"
+        }))
+        .pipe(tslint.report())
+);
 
 gulp.task('compile-coffee', () => 
     gulp.src('src/**/*.coffee')
@@ -56,7 +65,7 @@ gulp.task('test', () => {
 
 gulp.task('compile', ['compile-ts', 'compile-coffee']);
 gulp.task('build', ['compile', 'copy-js']);
-gulp.task('lint', ['coffee-lint']);
+gulp.task('lint', ['coffee-lint', 'ts-lint']);
 
 gulp.task('clean', cb => rimraf('./release', cb));
 
