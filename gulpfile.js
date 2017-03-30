@@ -11,9 +11,9 @@ const runSequence = require('run-sequence');
 const tsProject = ts.createProject('tsconfig.json');
 
 function compileTs() {
-    const tsResult = tsProject.src() // instead of gulp.src(...) 
+    const tsResult = tsProject.src() 
         .pipe(sourcemaps.init())
-        .pipe(ts(tsProject));
+        .pipe(tsProject());
  
     return merge([
         tsResult.dts
