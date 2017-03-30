@@ -11,7 +11,7 @@ const log = loglevel.getLogger('server-startup')
 /**
  *  Make an array of java command line args for spawn
  */
-export function javaArgsOf(classpath: string[], dotEnsimePath: string, ensimeServerFlags = ''): string[] {
+function javaArgsOf(classpath: string[], dotEnsimePath: string, ensimeServerFlags = ''): string[] {
   const args = ['-classpath', classpath.join(path.delimiter) , `-Densime.config=${dotEnsimePath}`]
 
   if (ensimeServerFlags) {
