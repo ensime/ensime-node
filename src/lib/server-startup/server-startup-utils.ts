@@ -1,7 +1,6 @@
 import {ensureExists} from '../file-utils'
 import {DotEnsime} from '../types'
 import path = require('path')
-import _ = require('lodash')
 import * as Promise from 'bluebird'
 import {spawn, ChildProcess} from 'child_process'
 import loglevel = require('loglevel')
@@ -41,17 +40,34 @@ function logServer(pid, cacheDir) {
     })
 }
 
-export function startServerFromClasspath(classpath: string[], dotEnsime: DotEnsime, serverFlags = ''): PromiseLike<ChildProcess> {
-  return new Promise<ChildProcess>((resolve, reject) => {
-    const cmd = javaCmdOf(dotEnsime)
+function execEnsime(cmd: string, args: string[]): PromiseLike<ChildProcess> {
+  const child = spawn(cmd, args)
+  let errorMsg = '<none>'
+  child.stderr.on('data', data => {
+    errorMsg = String.fromCharCode.apply(null, data)
+  })
 
-    const args = javaArgsOf(classpath, dotEnsime.dotEnsimePath, serverFlags)
-    log.debug(`Starting Ensime server with ${cmd} ${_.join(args, ' ')}`)
-
-    ensureExists(dotEnsime.cacheDir).then( () => {
-      const pid = spawn(cmd, args)
-      logServer(pid, dotEnsime.cacheDir)
-      resolve(pid)
+  return new Promise((resolve, reject) => {
+    // Wait 5s to check that the process didn't die
+    setTimeout(() => resolve(child), 5000)
+    child.on('error', err => {
+      reject(new Error(`Failed to start '${cmd} ${args.join(' ')}': ${err}`))
+    })
+    child.on('exit', () => {
+      reject(new Error(`Fail to run '${cmd} ${args.join(' ')}': ${errorMsg}`))
     })
   })
+}
+
+export function startServerFromClasspath(classpath: string[], dotEnsime: DotEnsime, serverFlags = ''): PromiseLike<ChildProcess> {
+  const cmd = javaCmdOf(dotEnsime)
+
+  const args = javaArgsOf(classpath, dotEnsime.dotEnsimePath, serverFlags)
+  log.debug(`Starting Ensime server with ${cmd} ${args.join(' ')}`)
+
+  const proc = ensureExists(dotEnsime.cacheDir).then(() => execEnsime(cmd, args))
+
+  proc.then(p => logServer(p, dotEnsime.cacheDir))
+
+  return proc
 }

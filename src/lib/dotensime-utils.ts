@@ -24,7 +24,7 @@ export function parseDotEnsime(path: string): PromiseLike<DotEnsime> {
         const dotEnsimeLisp = lisp.readFromString(dotEnsime)
         const dotEnsimeJs = sexpToJObject(dotEnsimeLisp)
         const subprojects = dotEnsimeJs[':subprojects']
-        const sourceRoots = _.flattenDeep(_.map(subprojects, sp => sp[':source-roots']))
+        const sourceRoots = _.flattenDeep(subprojects.map(sp => sp[':source-roots']))
         const scalaVersion = dotEnsimeJs[':scala-version']
         const scalaEdition = scalaVersion.substring(0, 4)
 
