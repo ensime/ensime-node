@@ -1,6 +1,6 @@
-import Promise = require('bluebird')
-import fs = require('fs')
-import loglevel = require('loglevel')
+import * as Promise from 'bluebird'
+import * as fs from 'fs'
+import * as loglevel from 'loglevel'
 
 const log = loglevel.getLogger('ensime.startup')
 

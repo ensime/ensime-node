@@ -6,7 +6,8 @@
   "description": "Ensime integration for node.js",
   "scripts": {
     "prepublish": "typings install; gulp build",
-    "test": "node --debug-brk --inspect node_modules/jasmine/bin/jasmine.js JASMINE_CONFIG_PATH=jasmine.json",
+    "test": "jasmine JASMINE_CONFIG_PATH=jasmine.json",
+    "test:debug": "node --debug-brk --inspect node_modules/jasmine/bin/jasmine.js JASMINE_CONFIG_PATH=jasmine.json",
     "test:coverage": "node node_modules/istanbul/lib/cli.js cover -e .ts  -x \"*.d.ts\" -x \"*.spec.ts\" node_modules/jasmine/bin/jasmine.js -- JASMINE_CONFIG_PATH=jasmine.json",
     "integration": "gulp integration",
     "it": "gulp it",
@@ -28,23 +29,8 @@
     "temp": "0.8.3",
     "ws": "1.0.1"
   },
-  "coffeelintConfig": {
-    "indentation": {
-      "level": "error",
-      "value": 2
-    },
-    "line_endings": {
-      "value": "unix",
-      "level": "error"
-    },
-    "max_line_length": {
-      "level": "warn",
-      "value": 200
-    }
-  },
   "devDependencies": {
     "assert": "1.4.1",
-    "coffee-script": "1.10.0",
     "gulp": "3.9.1",
     "gulp-coffee": "2.3.2",
     "gulp-coffeelint": "0.6.0",
@@ -55,7 +41,8 @@
     "istanbul": "1.1.0-alpha.1",
     "jasmine": "2.4.1",
     "jasmine-focused": "1.0.7",
-    "jasmine-ts": "^0.1.2",
+    "jasmine-spec-reporter": "4.1.0",
+    "jasmine-ts": "0.1.2",
     "merge2": "1.0.2",
     "rimraf": "2.5.2",
     "run-sequence": "1.2.2",
