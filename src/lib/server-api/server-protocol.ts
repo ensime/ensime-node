@@ -6,6 +6,9 @@ export interface Typehinted {
     typehint: string
 }
 
+export interface True extends Typehinted {}
+export interface False extends Typehinted {}
+
 export interface Param {
     localName: string
 }
@@ -48,6 +51,8 @@ export interface EntityInfo extends Typehinted {
     name: string
     members: [EntityInfo]
 }
+
+export interface Void extends EntityInfo { }
 
 export interface TypeInfo extends EntityInfo {
     name: string
@@ -104,4 +109,25 @@ export interface RefactoringDesc {
 export interface Point {
     from: number
     to: number
+}
+
+export interface DebugVmStatus extends Typehinted {
+    status: string
+}
+
+export interface DebugVmSuccess extends DebugVmStatus { }
+
+export interface DebugVmError extends DebugVmStatus {
+    errorCode: number
+    details: string
+}
+
+export interface Breakpoint extends Typehinted {
+    file: string
+    line: number
+}
+
+export interface BreakpointList extends Typehinted {
+    active: [Breakpoint]
+    pending: [Breakpoint]
 }
