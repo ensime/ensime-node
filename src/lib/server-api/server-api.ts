@@ -1,4 +1,5 @@
 import * as Promise from 'bluebird'
+import {OffsetRange, SourceFileInfo} from './server-commons'
 import {ServerConnection} from './server-connection'
 import {CompletionsResponse, Point, RefactoringDesc, SymbolInfo, Typehinted} from './server-protocol'
 import fs = require('fs-extra')
@@ -18,26 +19,28 @@ const getTempPath = file => {
 
 const withTempFile = (filePath: string, bufferText: string): PromiseLike<string> => {
     const tempFilePath = getTempPath(filePath)
-    const p = Promise.defer<string>()
-    fs.outputFile(tempFilePath, bufferText, err => {
-        if (err) {
-            p.reject('error with file')
-        } else {
-            p.resolve(tempFilePath)
-        }
+    return new Promise<string>((resolve, reject) => {
+        fs.outputFile(tempFilePath, bufferText, err => {
+            if (err) {
+                reject('error with file')
+            } else {
+                resolve(tempFilePath)
+            }
+        })
     })
-    return p.promise
 }
 
 export function apiOf(client: ServerConnection): Api {
+
     function getCompletions(filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number) {
-        return withTempFile(filePath, bufferText).then(tempFile => {
+        return withTempFile(filePath, bufferText).then(tempFilePath => {
+            const fileInfo: SourceFileInfo = {
+                contentsIn: tempFilePath,
+                file: filePath,
+            }
             const msg = {
                 caseSens: false,
-                fileInfo: {
-                    contentsIn: tempFile,
-                    file: filePath,
-                },
+                fileInfo,
                 maxResults: noOfAutocompleteSuggestions,
                 point: offset,
                 reload: true,
@@ -64,24 +67,26 @@ export function apiOf(client: ServerConnection): Api {
         })
     }
 
-    function typecheckBuffer(path: string, text: string) {
-        return withTempFile(path, text).then(tempFilePath => {
+    function typecheckBuffer(filePath: string, text: string) {
+        return withTempFile(filePath, text).then(tempFilePath => {
+            const fileInfo: SourceFileInfo = {
+                contentsIn: tempFilePath,
+                file: filePath,
+            }
             const msg = {
-                fileInfo: {
-                    contentsIn: tempFilePath,
-                    file: path,
-                },
+                fileInfo,
                 typehint: 'TypecheckFileReq',
             }
             return client.post(msg)
         })
     }
 
-    function typecheckFile(path: string) {
+    function typecheckFile(filePath: string) {
+        const fileInfo: SourceFileInfo = {
+            file: filePath,
+        }
         const msg = {
-            fileInfo: {
-                file: path,
-            },
+            fileInfo,
             typehint: 'TypecheckFileReq',
         }
         return client.post(msg)
@@ -96,12 +101,13 @@ export function apiOf(client: ServerConnection): Api {
     }
 
     function getImplicitInfo(path: string, startO: number, endO: number) {
+        const range: OffsetRange = {
+            from: startO,
+            to: endO,
+        }
         const msg = {
             file: path,
-            range: {
-                from: startO,
-                to: endO,
-            },
+            range,
             typehint: 'ImplicitInfoReq',
         }
         return client.post(msg)
@@ -149,6 +155,41 @@ export function apiOf(client: ServerConnection): Api {
             point: characterIndex,
             typehint: 'ImportSuggestionsReq',
         })
+    }
+
+    function getTypeByName(name: string) {
+        const req = {
+            name,
+            typehint: 'TypeByNameReq',
+        }
+        return client.post(req)
+    }
+
+    function getTypeByNameAtPoint(name: string, file: string, startO: number, endO: number) {
+        const range: OffsetRange = {
+            from: startO,
+            to: endO,
+        }
+        const req = {
+            name,
+            file,
+            range,
+            typehint: 'TypeByNameAtPointReq',
+        }
+        return client.post(req)
+    }
+
+    function getTypeAtPoint(file: string, startO: number, endO: number) {
+        const range: OffsetRange = {
+            from: startO,
+            to: endO,
+        }
+        const req = {
+            file,
+            range,
+            typehint: 'TypeAtPointReq',
+        }
+        return client.post(req)
     }
 
     return {

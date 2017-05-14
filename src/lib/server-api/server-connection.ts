@@ -1,7 +1,9 @@
 import * as Promise from 'bluebird'
+import {ChildProcess} from 'child_process'
 import * as loglevel from 'loglevel'
 import {WebsocketClient} from '../network/NetworkClient'
 import {Typehinted} from '../server-api/server-protocol'
+
 const log = loglevel.getLogger('ensime.client')
 
 /**
@@ -19,7 +21,7 @@ export interface ServerConnection {
     post: (msg: any) => PromiseLike<Typehinted>
 }
 
-export function createConnection(httpPort: string, generalMsgHandler, serverPid?): PromiseLike<ServerConnection> {
+export function createConnection(httpPort: string, generalMsgHandler, serverPid?: ChildProcess): PromiseLike<ServerConnection> {
     const deferredConnection = Promise.defer<ServerConnection>()
 
     const callbackMap: { [callId: string]: Promise.Resolver<any> } = {}

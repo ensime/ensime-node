@@ -58,14 +58,10 @@ export function allDotEnsimesInPaths(paths: [string]): PromiseLike<Array<{ path:
             })
     )
     const promise = Promise.all(promises)
-    const result = promise.then(dotEnsimesUnflattened => {
+    return promise.then(dotEnsimesUnflattened => {
         const thang = _.flattenDeep<string>(dotEnsimesUnflattened)
-        function toObj(path: string) {
-            return { path: path as string }
-        }
-        return thang.map(toObj)
+        return thang.map((path: string) => ({ path }))
     })
-    return result
 }
 
 export function dotEnsimesFilter(path: string, stats: any) {
