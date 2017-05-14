@@ -95,19 +95,6 @@ export function apiOf(client: ServerConnection): Api {
         return client.post(msg)
     }
 
-    function formatSourceFile(path, contents, callback) {
-        return withTempFile(path, contents).then(tempFilePath => {
-            const req = {
-                file: {
-                    contentsIn: tempFilePath,
-                    file: path,
-                },
-                typehint: 'FormatOneSourceReq',
-            }
-            return client.post(req)
-        })
-    }
-
     function getImplicitInfo(path: string, startO: number, endO: number) {
         const msg = {
             file: path,
@@ -170,7 +157,6 @@ export function apiOf(client: ServerConnection): Api {
         typecheckFile,
         typecheckBuffer,
         symbolByName,
-        formatSourceFile,
         getImplicitInfo,
         typecheckAll,
         unloadAll,
@@ -187,7 +173,6 @@ export interface Api {
     typecheckFile: (path: string) => PromiseLike<Typehinted>
     typecheckBuffer: (path: string, text: string) => void
     symbolByName: (qualifiedName: any) => PromiseLike<Typehinted>
-    formatSourceFile: (path: any, contents: any, callback: any) => PromiseLike<Typehinted>
     getImplicitInfo: (path: string, startO: number, endO: number) => PromiseLike<Typehinted>
     getRefactoringPatch: (procId: number, refactoring: RefactoringDesc) => PromiseLike<Typehinted>
     typecheckAll(): void
