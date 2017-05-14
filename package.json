@@ -18,14 +18,14 @@
   "repository": "https://github.com/ensime/ensime-node",
   "license": "MIT",
   "dependencies": {
-    "bluebird": "3.3.3",
+    "bluebird": "3.5.0",
     "chokidar": "1.6.0",
     "download": "4.4.3",
     "fs": "0.0.2",
     "fs-extra": "0.26.5",
     "glob": "7.0.0",
     "lodash": "4.5.1",
-    "loglevel": "1.4.0",
+    "loglevel": "1.4.1",
     "temp": "0.8.3",
     "ws": "1.0.1"
   },
@@ -39,16 +39,16 @@
     "gulp-tslint": "7.1.0",
     "gulp-typescript": "3.1.6",
     "istanbul": "1.1.0-alpha.1",
-    "jasmine": "2.4.1",
+    "jasmine": "2.6.0",
     "jasmine-focused": "1.0.7",
     "jasmine-spec-reporter": "4.1.0",
     "jasmine-ts": "0.1.2",
     "merge2": "1.0.2",
     "rimraf": "2.5.2",
     "run-sequence": "1.2.2",
-    "ts-node": "3.0.3",
-    "tslint": "4.5.1",
-    "typescript": "2.2.1",
-    "typings": "1.0.4"
+    "ts-node": "3.0.4",
+    "tslint": "5.2.0",
+    "typescript": "2.3.2",
+    "typings": "2.1.1"
   }
 }
