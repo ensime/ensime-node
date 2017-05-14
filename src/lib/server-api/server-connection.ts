@@ -6,26 +6,52 @@ import {Typehinted} from '../server-api/server-protocol'
 
 const log = loglevel.getLogger('ensime.client')
 
+export type CallId = number
+export type CallbackMap = Map<CallId, Promise.Resolver<any>>
+
 /**
  * A running and connected ensime client
  *
  * low-level api
  */
-export interface ServerConnection {
-    destroy: () => void
+export class ServerConnection {
+    public readonly httpPort: string
+    private netClient: WebsocketClient
+    private serverPid?: ChildProcess
+    private callbackMap: CallbackMap
+    private ensimeMessageCounter = 1
 
-    httpPort: string
+    constructor(httpPort: string, netClient: WebsocketClient, callbackMap: CallbackMap, serverPid?: ChildProcess) {
+        this.httpPort = httpPort
+        this.netClient = netClient
+        this.callbackMap = callbackMap
+        this.serverPid = serverPid
+    }
+
     /**
      * Post a msg object
      */
-    post: (msg: any) => PromiseLike<Typehinted>
+    public post<T extends Typehinted>(msg: any): PromiseLike<T> {
+        const p = Promise.defer<T>()
+        const wireMsg = `{"req": ${JSON.stringify(msg)}, "callId": ${this.ensimeMessageCounter}}`
+        this.callbackMap.set(this.ensimeMessageCounter++, p)
+        log.debug('outgoing: ' + wireMsg)
+        this.netClient.send(wireMsg)
+        return p.promise
+    }
+
+    public destroy() {
+        this.netClient.destroy()
+        if (this.serverPid) {
+            this.serverPid.kill()
+        }
+    }
 }
 
 export function createConnection(httpPort: string, generalMsgHandler, serverPid?: ChildProcess): PromiseLike<ServerConnection> {
     const deferredConnection = Promise.defer<ServerConnection>()
 
-    const callbackMap: { [callId: string]: Promise.Resolver<any> } = {}
-    let ensimeMessageCounter = 1
+    const callbackMap: CallbackMap = new Map()
 
     function handleIncoming(msg) {
         const json = JSON.parse(msg)
@@ -35,13 +61,13 @@ export function createConnection(httpPort: string, generalMsgHandler, serverPid?
 
         if (callId) {
             try {
-                const p = callbackMap[callId]
+                const p = callbackMap.get(callId)
                 log.debug('resolving promise: ' + p)
                 p.resolve(json.payload)
             } catch (error) {
                 log.trace(`error in callback: ${error}`)
             } finally {
-                delete callbackMap[callId]
+                callbackMap.delete(callId)
             }
         } else {
             return generalMsgHandler(json.payload)
@@ -49,42 +75,11 @@ export function createConnection(httpPort: string, generalMsgHandler, serverPid?
     }
 
     function onConnect() {
-        deferredConnection.resolve(publicApi())
-    }
-
-    function publicApi(): ServerConnection {
         log.debug('creating client api')
-        return {
-            post,
-            destroy,
-            httpPort,
-        }
+        deferredConnection.resolve(new ServerConnection(httpPort, netClient, callbackMap, serverPid))
     }
 
     const netClient = new WebsocketClient(httpPort, onConnect, handleIncoming)
-
-    /**
-     * Kills server if it was spawned from here.
-     */
-    function destroy() {
-        netClient.destroy()
-        if (serverPid) {
-            serverPid.kill()
-        }
-    }
-
-    function postString(msg): PromiseLike<Typehinted> {
-        const p = Promise.defer<Typehinted>()
-        const wireMsg = `{"req": ${msg}, "callId": ${ensimeMessageCounter}}`
-        callbackMap[ensimeMessageCounter++] = p
-        log.debug('outgoing: ' + wireMsg)
-        netClient.send(wireMsg)
-        return p.promise
-    }
-
-    function post(msg): PromiseLike<Typehinted> {
-        return postString(JSON.stringify(msg))
-    }
 
     return deferredConnection.promise
 }

@@ -1,7 +1,7 @@
 import * as Promise from 'bluebird'
 import {OffsetRange, SourceFileInfo} from './server-commons'
 import {ServerConnection} from './server-connection'
-import {CompletionsResponse, Point, RefactoringDesc, SymbolInfo, Typehinted} from './server-protocol'
+import {CompletionsResponse, Point, RefactoringDesc, SymbolInfo, Typehinted, TypeInfo} from './server-protocol'
 import fs = require('fs-extra')
 import * as path from 'path'
 import * as temp from 'temp'
@@ -32,7 +32,7 @@ const withTempFile = (filePath: string, bufferText: string): PromiseLike<string>
 
 export function apiOf(client: ServerConnection): Api {
 
-    function getCompletions(filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number) {
+    function getCompletions(filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number): PromiseLike<CompletionsResponse> {
         return withTempFile(filePath, bufferText).then(tempFilePath => {
             const fileInfo: SourceFileInfo = {
                 contentsIn: tempFilePath,
@@ -46,24 +46,21 @@ export function apiOf(client: ServerConnection): Api {
                 reload: true,
                 typehint: 'CompletionsReq',
             }
-            return client.post(msg)
+            return client.post<CompletionsResponse>(msg)
         })
     }
 
-    function getSymbolAtPoint(path: string, offset): PromiseLike<Typehinted> {
-        return new Promise<Typehinted>((resolve, reject) => {
-            const req = {
-                file: path,
-                point: offset,
-                typehint: 'SymbolAtPointReq',
+    function getSymbolAtPoint(path: string, offset): PromiseLike<SymbolInfo> {
+        const req = {
+            file: path,
+            point: offset,
+            typehint: 'SymbolAtPointReq',
+        }
+        return client.post<SymbolInfo>(req).then(msg => {
+            if (msg.typehint === 'SymbolInfo') {
+                return msg
             }
-            client.post(req).then(msg => {
-                if (msg.typehint === 'SymbolInfo') {
-                    resolve(msg)
-                } else {
-                    reject('no symbol response')
-                }
-            })
+            return Promise.reject<SymbolInfo>('no symbol response')
         })
     }
 
@@ -157,15 +154,15 @@ export function apiOf(client: ServerConnection): Api {
         })
     }
 
-    function getTypeByName(name: string) {
+    function getTypeByName(name: string): PromiseLike<TypeInfo> {
         const req = {
             name,
             typehint: 'TypeByNameReq',
         }
-        return client.post(req)
+        return client.post<TypeInfo>(req)
     }
 
-    function getTypeByNameAtPoint(name: string, file: string, startO: number, endO: number) {
+    function getTypeByNameAtPoint(name: string, file: string, startO: number, endO: number): PromiseLike<TypeInfo> {
         const range: OffsetRange = {
             from: startO,
             to: endO,
@@ -176,10 +173,10 @@ export function apiOf(client: ServerConnection): Api {
             range,
             typehint: 'TypeByNameAtPointReq',
         }
-        return client.post(req)
+        return client.post<TypeInfo>(req)
     }
 
-    function getTypeAtPoint(file: string, startO: number, endO: number) {
+    function getTypeAtPoint(file: string, startO: number, endO: number): PromiseLike<TypeInfo> {
         const range: OffsetRange = {
             from: startO,
             to: endO,
@@ -189,7 +186,7 @@ export function apiOf(client: ServerConnection): Api {
             range,
             typehint: 'TypeAtPointReq',
         }
-        return client.post(req)
+        return client.post<TypeInfo>(req)
     }
 
     return {
@@ -205,6 +202,9 @@ export function apiOf(client: ServerConnection): Api {
         searchPublicSymbols,
         getDocUriAtPoint,
         getImportSuggestions,
+        getTypeByName,
+        getTypeByNameAtPoint,
+        getTypeAtPoint
     }
 }
 
@@ -221,4 +221,7 @@ export interface Api {
     searchPublicSymbols(keywords: string[], maxSymbols: number): PromiseLike<Typehinted>
     getDocUriAtPoint(file: string, point: Point): PromiseLike<Typehinted>
     getImportSuggestions(file: string, characterIndex: number, symbol: string): PromiseLike<Typehinted>
+    getTypeByName(name: string): PromiseLike<TypeInfo>
+    getTypeByNameAtPoint(name: string, file: string, startO: number, endO: number): PromiseLike<TypeInfo>
+    getTypeAtPoint(file: string, startO: number, endO: number): PromiseLike<TypeInfo>
 }
