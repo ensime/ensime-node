@@ -16,26 +16,43 @@ import {
     DotEnsime,
     ServerStarter,
 } from '../lib/index'
+import {apiOf, Api} from '../lib/server-api/server-api'
 import {ServerConnection} from '../lib/server-api/server-connection'
+import {Event} from '../lib/server-api/server-protocol'
 
 import {spawn} from 'child_process'
 
+loglevel.setDefaultLevel(LogLevel.TRACE)
+loglevel.setLevel('trace')
 const log = loglevel.getLogger('spec-utils')
 
 temp.track()
 
 export class ProjectRef {
     public readonly path: string
-    public readonly client: ServerConnection
+    public readonly connection: ServerConnection
+    public readonly api: Api
 
-    constructor(path: string, client: ServerConnection) {
-        this.client = client
+    constructor(path: string, connection: ServerConnection) {
+        this.connection = connection
         this.path = path
+        this.api = apiOf(connection)
+    }
+
+    public addFiles(files: { [path: string]: string}): Promise<{}> {
+        return Promise.all(
+            Object.keys(files).map(basePath => writeFile(this.pathOf(basePath), files[basePath]))
+        )
+    }
+
+    public pathOf(relativePath: string): string {
+        return path.join(this.path, relativePath)
     }
 
     public clean() {
-        this.client.destroy()
+        log.debug(`Cleaning ${path} project`)
         temp.cleanupSync()
+        return this.connection.destroy()
     }
 }
 
@@ -125,8 +142,21 @@ function startEnsime(dotEnsimePath: string, serverVersion: string = '2.0.0-M1'):
             serverStarter = (project: DotEnsime) => startServerFromAssemblyJar(assemblyJar, project)
         }
 
-        return clientStarterFromServerStarter(serverStarter)(dotEnsime, serverVersion, msg => {
-            log.debug(msg)
+        return clientStarterFromServerStarter(serverStarter)(dotEnsime, serverVersion)
+    })
+}
+
+export function expectEvents(api: Api, events: [Event]): PromiseLike<{}>   {
+    return new Promise((resolve, reject) => {
+        let evIdx: number = 0
+        api.onEvents(event => {
+            if (evIdx >= events.length) {
+                return
+            }
+            expect(event).toEqual(events[evIdx++])
+            if (evIdx >= events.length) {
+                resolve(events)
+            }
         })
     })
 }

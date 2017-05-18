@@ -30,7 +30,7 @@ const whenAdded = (file: string) =>
 //  Start an ensime client given path to .ensime. If server already running, just use, else startup that too.
 export default function(serverStarter: ServerStarter) {
     log.debug('creating client starter function from ServerStarter')
-    return (parsedDotEnsime: DotEnsime, serverVersion: string, generalHandler: (msg: string) => any): PromiseLike<ServerConnection> => {
+    return (parsedDotEnsime: DotEnsime, serverVersion: string): PromiseLike<ServerConnection> => {
 
         log.debug('trying to start client')
 
@@ -51,7 +51,7 @@ export default function(serverStarter: ServerStarter) {
 
             return serverProcessRef.then(serverProcess => {
                 const httpPort = removeTrailingNewline(fs.readFileSync(httpPortFilePath).toString())
-                const connectionPromise = createConnection(httpPort, generalHandler, serverProcess)
+                const connectionPromise = createConnection(httpPort, serverProcess)
                 return connectionPromise.then(connection => {
                     log.debug('got a connection')
                     return connection

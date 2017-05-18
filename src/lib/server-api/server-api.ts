@@ -1,9 +1,10 @@
 import * as Promise from 'bluebird'
 import {OffsetRange, SourceFileInfo} from './server-commons'
-import {ServerConnection} from './server-connection'
+import {EventHandler, ServerConnection} from './server-connection'
 import {
     BreakpointList,
     CompletionsResponse,
+    ConnectionInfo,
     DebugVmStatus,
     False,
     Point,
@@ -102,6 +103,14 @@ function debuggerApiOf(client: ServerConnection): DebuggerApi {
 export function apiOf(client: ServerConnection): Api {
 
     return {
+        onEvents(listener: EventHandler, once?: boolean) {
+            client.onEvents(listener, once)
+        },
+
+        getConnectionInfo() {
+            return client.post<ConnectionInfo>({ typehint: 'ConnectionInfoReq' })
+        },
+
         getCompletions(filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number): PromiseLike<CompletionsResponse> {
             return withTempFile(filePath, bufferText).then(tempFilePath => {
                 const fileInfo: SourceFileInfo = {
@@ -214,10 +223,10 @@ export function apiOf(client: ServerConnection): Api {
             })
         },
 
-        getImportSuggestions(file: string, characterIndex: number, symbol: string) {
+        getImportSuggestions(file: string, characterIndex: number, symbol: string, maxResults: number = 10) {
             return client.post({
                 file,
-                maxResults: 10,
+                maxResults,
                 names: [symbol],
                 point: characterIndex,
                 typehint: 'ImportSuggestionsReq',
@@ -285,6 +294,8 @@ export interface DebuggerApi {
 }
 
 export interface Api {
+    onEvents: (listener: EventHandler, once?: boolean) => void
+    getConnectionInfo: () => PromiseLike<ConnectionInfo>
     getCompletions: (filePath: string, bufferText: any, offset: any, noOfAutocompleteSuggestions: any) => PromiseLike<CompletionsResponse>
     getSymbolAtPoint: (path: string, offset: any) => PromiseLike<SymbolInfo>
     typecheckFile: (path: string) => PromiseLike<Typehinted>

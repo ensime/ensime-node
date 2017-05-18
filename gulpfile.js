@@ -27,7 +27,7 @@ function compileTs() {
 gulp.task('compile-ts', compileTs);
 
 gulp.task('ts-lint', () => 
-    gulp.src('src/lib/**/*.ts')
+    gulp.src('src/**/*.ts')
         .pipe(tslint({
             formatter: "verbose"
         }))

@@ -1,13 +1,15 @@
 import * as Promise from 'bluebird'
 import {ChildProcess} from 'child_process'
+import {EventEmitter} from 'events'
 import * as loglevel from 'loglevel'
 import {WebsocketClient} from '../network/NetworkClient'
-import {Typehinted} from '../server-api/server-protocol'
+import {Event, Typehinted} from '../server-api/server-protocol'
 
 const log = loglevel.getLogger('ensime.client')
 
 export type CallId = number
 export type CallbackMap = Map<CallId, Promise.Resolver<any>>
+export type EventHandler = (ev: Event) => void
 
 /**
  * A running and connected ensime client
@@ -17,15 +19,25 @@ export type CallbackMap = Map<CallId, Promise.Resolver<any>>
 export class ServerConnection {
     public readonly httpPort: string
     private netClient: WebsocketClient
-    private serverPid?: ChildProcess
+    private serverProcess?: ChildProcess
     private callbackMap: CallbackMap
+    private serverEvents: EventEmitter
     private ensimeMessageCounter = 1
 
-    constructor(httpPort: string, netClient: WebsocketClient, callbackMap: CallbackMap, serverPid?: ChildProcess) {
+    constructor(httpPort: string, netClient: WebsocketClient, callbackMap: CallbackMap, serverEvents: EventEmitter, serverProcess?: ChildProcess) {
         this.httpPort = httpPort
         this.netClient = netClient
         this.callbackMap = callbackMap
-        this.serverPid = serverPid
+        this.serverEvents = serverEvents
+        this.serverProcess = serverProcess
+    }
+
+    public onEvents(listener: EventHandler, once: boolean = false) {
+        if (!once) {
+            this.serverEvents.on('events', listener)
+        } else {
+            this.serverEvents.once('events', listener)
+        }
     }
 
     /**
@@ -40,18 +52,29 @@ export class ServerConnection {
         return p.promise
     }
 
-    public destroy() {
+    public destroy(): PromiseLike<number> {
         this.netClient.destroy()
-        if (this.serverPid) {
-            this.serverPid.kill()
+        if (this.serverProcess) {
+            return this.killServer()
         }
+        return Promise.resolve(0)
+    }
+
+    private killServer(): PromiseLike<number> {
+        const p = Promise.defer<number>()
+        this.serverProcess.on('close', code => {
+            p.resolve(code)
+        })
+        this.serverProcess.kill()
+        return p.promise
     }
 }
 
-export function createConnection(httpPort: string, generalMsgHandler, serverPid?: ChildProcess): PromiseLike<ServerConnection> {
+export function createConnection(httpPort: string, serverProcess?: ChildProcess): PromiseLike<ServerConnection> {
     const deferredConnection = Promise.defer<ServerConnection>()
 
     const callbackMap: CallbackMap = new Map()
+    const serverEvents: EventEmitter = new EventEmitter()
 
     function handleIncoming(msg) {
         const json = JSON.parse(msg)
@@ -70,13 +93,13 @@ export function createConnection(httpPort: string, generalMsgHandler, serverPid?
                 callbackMap.delete(callId)
             }
         } else {
-            return generalMsgHandler(json.payload)
+            serverEvents.emit('events', json.payload)
         }
     }
 
     function onConnect() {
         log.debug('creating client api')
-        deferredConnection.resolve(new ServerConnection(httpPort, netClient, callbackMap, serverPid))
+        deferredConnection.resolve(new ServerConnection(httpPort, netClient, callbackMap, serverEvents, serverProcess))
     }
 
     const netClient = new WebsocketClient(httpPort, onConnect, handleIncoming)
