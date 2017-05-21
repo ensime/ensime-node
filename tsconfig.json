@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "target": "es5",
+        "target": "es6",
         "module": "commonjs",
         "moduleResolution": "node",
         "experimentalDecorators": true,
@@ -16,7 +16,7 @@
         "gulpfile.js",
         "node_modules",
         "release"
-        ],
+    ],
     "compileOnSave": false,
     "buildOnSave": false,
     "atom": {

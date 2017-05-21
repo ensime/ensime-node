@@ -34,24 +34,10 @@ gulp.task('ts-lint', () =>
         .pipe(tslint.report())
 );
 
-gulp.task('compile-coffee', () => 
-    gulp.src('src/**/*.coffee')
-        .pipe(sourcemaps.init())
-        .pipe(coffee())
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest('release/js'))
-);
-
 // Just copy js to dist folder
 gulp.task('copy-js', () => 
     gulp.src('./src/**/*.js')
         .pipe(gulp.dest('release/js'))
-);
-
-gulp.task('coffee-lint', () => 
-    gulp.src('./src/*.coffee')
-        .pipe(coffeelint())
-        .pipe(coffeelint.reporter())
 );
 
 gulp.task('integration', ['build', 'it']);
@@ -63,9 +49,9 @@ gulp.task('test', () => {
 	return gulp.src('./release/js/spec/**/*.js').pipe(jasmine({includeStackTrace: false}));
 });
 
-gulp.task('compile', ['compile-ts', 'compile-coffee']);
+gulp.task('compile', ['compile-ts']);
 gulp.task('build', ['compile', 'copy-js']);
-gulp.task('lint', ['coffee-lint', 'ts-lint']);
+gulp.task('lint', ['ts-lint']);
 
 gulp.task('clean', cb => rimraf('./release', cb));
 
@@ -74,5 +60,4 @@ gulp.task('default', cb => runSequence(['clean, build'], cb));
 
 gulp.task('watch', ['build'], cb => {
     gulp.watch('src/**/*.ts', vinyl => runSequence('compile-ts', 'test', () => {}));
-    gulp.watch('src/**/*.coffee', vinyl => runSequence('compile-coffee', 'test', () => {}));
 });
