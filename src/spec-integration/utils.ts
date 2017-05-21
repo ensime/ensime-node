@@ -16,6 +16,7 @@ import {
     DotEnsime,
     ServerStarter,
 } from '../lib/index'
+import {makeInstanceFromPath, EnsimeInstance, UI} from '../lib/instance'
 import {apiOf, Api} from '../lib/server-api/server-api'
 import {ServerConnection} from '../lib/server-api/server-connection'
 import {Event} from '../lib/server-api/server-protocol'
@@ -28,35 +29,18 @@ const log = loglevel.getLogger('spec-utils')
 
 temp.track()
 
-export class ProjectRef {
-    public readonly path: string
-    public readonly connection: ServerConnection
-    public readonly api: Api
-
-    constructor(path: string, connection: ServerConnection) {
-        this.connection = connection
-        this.path = path
-        this.api = apiOf(connection)
+class CleanUpFakeUI implements UI {
+    private projectPath
+    constructor(projectPath: string) {
+        this.projectPath = projectPath
     }
-
-    public addFiles(files: { [path: string]: string}): Promise<{}> {
-        return Promise.all(
-            Object.keys(files).map(basePath => writeFile(this.pathOf(basePath), files[basePath]))
-        )
-    }
-
-    public pathOf(relativePath: string): string {
-        return path.join(this.path, relativePath)
-    }
-
-    public clean() {
-        log.debug(`Cleaning ${path} project`)
+    public destroy(): void {
+        log.debug(`Cleaning ${this.projectPath} project`)
         temp.cleanupSync()
-        return this.connection.destroy()
     }
 }
 
-export async function setupProject(): Promise<ProjectRef> {
+export async function setupProject(): Promise<EnsimeInstance<any>> {
     const projectPath = temp.mkdirSync('ensime-integration-test')
     await generateProject(projectPath)
     await genDotEnsime(projectPath)
@@ -70,13 +54,13 @@ export async function setupProject(): Promise<ProjectRef> {
         return c
     })
 
-    return new ProjectRef(projectPath, connection)
+    return await makeInstanceFromPath(dotEnsimePath, connection, new CleanUpFakeUI(projectPath))
 }
 
 /**
  * Generates project structure and build.sbt
  */
-async function generateProject(dir: string) {
+async function generateProject(dir: string): Promise<any> {
     await fs.ensureDir(path.join(dir, 'project'))
     await fs.ensureDir(path.join(dir, 'src', 'main', 'scala'))
 
@@ -110,7 +94,7 @@ async function generateProject(dir: string) {
 /**
  * Calls sbt ensimeConfig to generate .ensime
  */
-function genDotEnsime(dir: string) {
+function genDotEnsime(dir: string): PromiseLike<number> {
     const pid = spawn('sbt', ['ensimeConfig'], {cwd: dir})
 
     pid.stdin.end()

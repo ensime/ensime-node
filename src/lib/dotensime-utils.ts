@@ -28,7 +28,7 @@ export function parseDotEnsime(path: string): PromiseLike<DotEnsime> {
         const scalaVersion = dotEnsimeJs[':scala-version']
         const scalaEdition = scalaVersion.substring(0, 4)
 
-        return {
+        const dotEmsime: DotEnsime = {
             name: dotEnsimeJs[':name'] as string,
             scalaVersion:  scalaVersion as string,
             scalaEdition: scalaEdition as string,
@@ -40,7 +40,9 @@ export function parseDotEnsime(path: string): PromiseLike<DotEnsime> {
             dotEnsimePath: path as string,
             sourceRoots: sourceRoots as [string],
             serverJars: dotEnsimeJs[':ensime-server-jars'],
-        } as DotEnsime
+        }
+
+        return dotEmsime
     })
 }
 

@@ -39,4 +39,4 @@ const sexpToJObject = msg => {
   return arrToJObject(arr)
 }
 
-export { sexpToJObject, arrToJObject };
+export { sexpToJObject, arrToJObject }
