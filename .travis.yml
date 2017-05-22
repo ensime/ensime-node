@@ -1,10 +1,11 @@
-language: cpp
+language: scala
+scala:
+  - 2.11.11
+jdk:
+  - oraclejdk8
 env:
   - NODE_VERSION="6"
   - NODE_VERSION="7"
-os:
-  - linux
-  - osx
 matrix:
   fast_finish: true
 before_install:
@@ -16,7 +17,7 @@ install:
   - npm install
 script:
   - npm run lint
-  - npm run test
+  - npm run test:all
   
 notifications:
   email:

@@ -28,10 +28,6 @@ gulp.task('copy-js', () =>
         .pipe(gulp.dest('release/js'))
 );
 
-gulp.task('integration', ['build', 'it']);
-
-gulp.task('it', () => gulp.src('./release/js/spec-integration/**/*.js').pipe(jasmine()));
-
 gulp.task('compile', ['compile-ts']);
 gulp.task('build', ['compile', 'copy-js']);
 
