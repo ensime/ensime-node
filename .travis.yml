@@ -1,4 +1,4 @@
-language: cpp
+language: scala
 env:
   - NODE_VERSION="6"
   - NODE_VERSION="7"
