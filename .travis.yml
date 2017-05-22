@@ -1,4 +1,6 @@
 language: scala
+scala:
+   - 2.11.11
 env:
   - NODE_VERSION="6"
   - NODE_VERSION="7"
