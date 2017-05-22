@@ -1,20 +1,12 @@
 language: scala
 scala:
   - 2.11.11
+jdk:
+  - oraclejdk8
+env:
+  - NODE_VERSION="6"
+  - NODE_VERSION="7"
 matrix:
-  include:
-    - os: linux
-      jdk: oraclejdk8
-      env: NODE_VERSION="6"
-    - os: linux
-      jdk: oraclejdk8
-      env: NODE_VERSION="7"
-    - os: osx
-      osx_image: xcode8
-      env: NODE_VERSION="6"
-    - os: osx
-      osx_image: xcode8
-      env: NODE_VERSION="7"
   fast_finish: true
 before_install:
   - git clone https://github.com/creationix/nvm.git /tmp/.nvm;
@@ -25,7 +17,7 @@ install:
   - npm install
 script:
   - npm run lint
-  - npm run test
+  - npm run test:all
   
 notifications:
   email:
