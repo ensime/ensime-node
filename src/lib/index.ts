@@ -1,4 +1,4 @@
-export {InstanceManager, EnsimeInstance, makeInstanceOf} from './instance'
+export {InstanceManager, EnsimeInstance, makeInstanceFromPath, makeInstanceFromRef} from './instance'
 
 export {DotEnsime, ServerStarter, pid, serverProtocol, ProxySettings} from './types'
 
