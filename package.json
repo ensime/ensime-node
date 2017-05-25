@@ -6,11 +6,11 @@
   "description": "Ensime integration for node.js",
   "scripts": {
     "prepublish": "typings install; gulp build",
-    "test": "jasmine JASMINE_CONFIG_PATH=jasmine.json",
+    "test": "jasmine JASMINE_CONFIG_PATH=jasmine.json src/spec/*",
+    "test:it": "jasmine JASMINE_CONFIG_PATH=jasmine.json src/spec-integration/*",
+    "test:all": "jasmine JASMINE_CONFIG_PATH=jasmine.json",
     "test:debug": "node --debug-brk --inspect node_modules/jasmine/bin/jasmine.js JASMINE_CONFIG_PATH=jasmine.json",
     "test:coverage": "node node_modules/istanbul/lib/cli.js cover -e .ts  -x \"*.d.ts\" -x \"*.spec.ts\" node_modules/jasmine/bin/jasmine.js -- JASMINE_CONFIG_PATH=jasmine.json",
-    "integration": "gulp integration",
-    "it": "gulp it",
     "lint": "gulp lint",
     "watch": "gulp watch",
     "clean": "gulp clean"

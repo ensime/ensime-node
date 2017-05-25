@@ -18,11 +18,11 @@ build:
     - npm install --unsafe-perm
     - curl http://ensime.typelevel.org/ensime_2.11-1.0.0-assembly.jar -o $DRONE_DIR/ensime_2.11-1.0.0-assembly.jar
     - export ENSIME_ASSEMBLY_JAR=$DRONE_DIR/ensime_2.11-1.0.0-assembly.jar
-    - npm run it
+    - npm run test:it
 
 matrix:
   NODE_VERSION:
-    - 5.0
+    - 6.0
 
 cache:
   mount:
