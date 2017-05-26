@@ -97,8 +97,8 @@ export interface Completion extends Typehinted {
     toInsert?: string
 }
 
-export enum DeclaredAs {
-    Method, Trait, Interface, Object, Class, Field, Nil,
+export interface DeclaredAs extends Typehinted {
+    typehint: 'Method' | 'Trait' | 'Interface' | 'Object' | 'Class' | 'Field' | 'Nil'
 }
 
 export interface EntityInfo extends Typehinted {
@@ -107,15 +107,6 @@ export interface EntityInfo extends Typehinted {
 }
 
 export interface Void extends EntityInfo { }
-
-export interface TypeInfo extends EntityInfo {
-    name: string
-    declAs: DeclaredAs // "Nil" |
-    fullName: string
-    typeArgs: [TypeInfo]
-    members: [EntityInfo]
-    pos?: SourcePosition
-}
 
 export interface SourcePosition extends Typehinted { }
 export interface EmptySourcePosition extends SourcePosition { }
@@ -130,6 +121,16 @@ export interface OffsetSourcePosition extends SourcePosition {
 export interface LineSourcePosition extends SourcePosition {
     file: string
     line: number
+}
+
+export interface TypeInfo extends EntityInfo {
+    name: string
+    declAs: DeclaredAs // "Nil" |
+    fullName: string
+    typeArgs: [TypeInfo]
+    members: [EntityInfo]
+    pos?: SourcePosition
+    typeParams: [TypeInfo]
 }
 
 export interface BasicTypeInfo extends TypeInfo {
@@ -163,6 +164,23 @@ export interface RefactoringDesc {
 export interface Point {
     from: number
     to: number
+}
+
+export interface SymbolSearchResult extends Typehinted {
+    name: string
+    localName: string
+    declAs: DeclaredAs
+    pos?: SourcePosition
+}
+
+export interface TypeSearchResult extends SymbolSearchResult {}
+
+export interface MethodSearchResult extends SymbolSearchResult {
+  ownerName: string
+}
+
+export interface ImportSuggestions extends Typehinted {
+    symLists: [[SymbolSearchResult]]
 }
 
 export interface DebugVmStatus extends Typehinted {

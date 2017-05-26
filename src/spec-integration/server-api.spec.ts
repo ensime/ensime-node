@@ -5,7 +5,15 @@ import loglevel = require('loglevel')
 import {EnsimeInstance} from '../lib/instance'
 import {Api} from '../lib/server-api/server-api'
 import {ServerConnection} from '../lib/server-api/server-connection'
-import {AnalyzerReady, Event, FullTypeCheckComplete, IndexerReady, SendBackgroundMessage} from '../lib/server-api/server-protocol'
+import {
+    AnalyzerReady,
+    Event,
+    FullTypeCheckComplete,
+    ImportSuggestions,
+    IndexerReady,
+    SendBackgroundMessage,
+    TypeInfo
+} from '../lib/server-api/server-protocol'
 import {expectEvents, setupProject} from './utils'
 
 const log = loglevel.getLogger('server-api')
@@ -53,8 +61,7 @@ describe('Server API', () => {
 
     it('should get type at point', async done => {
         const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Types.scala'))
-        const typeAtPointRes = await api.getTypeAtPoint(targetFile, 11, 15)
-        expect(typeAtPointRes).toEqual({
+        const expectedTypeAtPointRes = {
             name: 'User',
             fullName: 'User',
             pos: {
@@ -69,14 +76,15 @@ describe('Server API', () => {
             declAs: {
               typehint: 'Class'
             }
-        })
+        }
+        const typeAtPointRes = await api.getTypeAtPoint(targetFile, 11, 15)
+        expect(typeAtPointRes).toEqual(expectedTypeAtPointRes)
         done()
     })
 
     it('should get import suggestionsRes', async done => {
         const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala'))
-        const importSuggestionsRes = await api.getImportSuggestions(targetFile, 0, 'Success')
-        expect(importSuggestionsRes).toEqual({
+        const expectedimportSuggestionsRes = {
             typehint: 'ImportSuggestions',
             symLists: [[{
                 name: 'scala.util.Success',
@@ -91,7 +99,9 @@ describe('Server API', () => {
                     typehint: 'Class'
                 }
             }]]
-        })
+        }
+        const importSuggestionsRes = await api.getImportSuggestions(targetFile, 0, 'Success')
+        expect(importSuggestionsRes).toEqual(expectedimportSuggestionsRes)
         done()
     })
 })

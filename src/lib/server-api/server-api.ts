@@ -7,6 +7,7 @@ import {
     ConnectionInfo,
     DebugVmStatus,
     False,
+    ImportSuggestions,
     Point,
     RefactoringDesc,
     SymbolInfo,
@@ -223,8 +224,8 @@ export function apiOf(client: ServerConnection): Api {
             })
         },
 
-        getImportSuggestions(file: string, characterIndex: number, symbol: string, maxResults: number = 10) {
-            return client.post({
+        getImportSuggestions(file: string, characterIndex: number, symbol: string, maxResults: number = 10): PromiseLike<ImportSuggestions> {
+            return client.post<ImportSuggestions>({
                 file,
                 maxResults,
                 names: [symbol],
@@ -307,7 +308,7 @@ export interface Api {
     unloadAll(): void
     searchPublicSymbols(keywords: string[], maxSymbols: number): PromiseLike<Typehinted>
     getDocUriAtPoint(file: string, point: Point): PromiseLike<Typehinted>
-    getImportSuggestions(file: string, characterIndex: number, symbol: string): PromiseLike<Typehinted>
+    getImportSuggestions(file: string, characterIndex: number, symbol: string, maxResults?: number): PromiseLike<ImportSuggestions>
     getTypeByName(name: string): PromiseLike<TypeInfo>
     getTypeByNameAtPoint(name: string, file: string, startO: number, endO: number): PromiseLike<TypeInfo>
     getTypeAtPoint(file: string, startO: number, endO: number): PromiseLike<TypeInfo>
