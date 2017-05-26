@@ -1,6 +1,5 @@
 const gulp = require('gulp');
 const ts = require('gulp-typescript');
-const tslint = require('gulp-tslint');
 const merge = require('merge2');
 const sourcemaps = require('gulp-sourcemaps');
 const rimraf = require('rimraf');
@@ -23,14 +22,6 @@ function compileTs() {
 
 gulp.task('compile-ts', compileTs);
 
-gulp.task('ts-lint', () => 
-    gulp.src('src/lib/**/*.ts')
-        .pipe(tslint({
-            formatter: "verbose"
-        }))
-        .pipe(tslint.report())
-);
-
 // Just copy js to dist folder
 gulp.task('copy-js', () => 
     gulp.src('./src/**/*.js')
@@ -39,7 +30,6 @@ gulp.task('copy-js', () =>
 
 gulp.task('compile', ['compile-ts']);
 gulp.task('build', ['compile', 'copy-js']);
-gulp.task('lint', ['ts-lint']);
 
 gulp.task('clean', cb => rimraf('./release', cb));
 

@@ -6,8 +6,65 @@ export interface Typehinted {
     typehint: string
 }
 
+export interface Event extends Typehinted {}
+
+/** Generic background notification. */
+export interface SendBackgroundMessage extends Event {
+  detail: string,
+  code: number,
+}
+
+/** The presentation compiler is ready to accept requests. */
+export interface AnalyzerReady extends Event { }
+
+/** The presentation compiler has finished analysing the entire project. */
+export interface FullTypeCheckComplete extends Event { }
+
+/** The search engine has finished indexing the classpath. */
+export interface IndexerReady extends Event { }
+
+/** The presentation compiler was restarted. Existing `:type-id`s are invalid. */
+export interface CompilerRestarted extends Event { }
+
+/** The presentation compiler has invalidated all existing notes.  */
+export interface ClearAllScalaNotes extends Event { }
+
+/** The presentation compiler has invalidated all existing notes.  */
+export interface ClearAllJavaNotes extends Event { }
+
+export interface Note {
+    file: string,
+    msg: string,
+    severity: string,
+    beg: number,
+    end: number,
+    line: number,
+    col: number,
+}
+
+/** The presentation compiler is providing notes: e.g. errors, warnings. */
+export interface NewScalaNotes extends Event {
+  isFull: boolean,
+  notes: [Note]
+}
+
+/** The presentation compiler is providing notes: e.g. errors, warnings. */
+export interface NewJavaNotes extends Event {
+  isFull: boolean,
+  notes: [Note]
+}
+
+export interface True extends Typehinted {}
+export interface False extends Typehinted {}
+
 export interface Param {
     localName: string
+}
+
+export interface ConnectionInfo extends Typehinted {
+    pid?: number
+    implementation: [{name: string}]
+    version: string
 }
 
 export interface ImplicitParamInfo extends Typehinted {
@@ -40,8 +97,8 @@ export interface Completion extends Typehinted {
     toInsert?: string
 }
 
-export enum DeclaredAs {
-    Method, Trait, Interface, Object, Class, Field, Nil,
+export interface DeclaredAs extends Typehinted {
+    typehint: 'Method' | 'Trait' | 'Interface' | 'Object' | 'Class' | 'Field' | 'Nil'
 }
 
 export interface EntityInfo extends Typehinted {
@@ -49,14 +106,7 @@ export interface EntityInfo extends Typehinted {
     members: [EntityInfo]
 }
 
-export interface TypeInfo extends EntityInfo {
-    name: string
-    declAs: DeclaredAs // "Nil" |
-    fullName: string
-    typeArgs: [TypeInfo]
-    members: [EntityInfo]
-    pos?: SourcePosition
-}
+export interface Void extends EntityInfo { }
 
 export interface SourcePosition extends Typehinted { }
 export interface EmptySourcePosition extends SourcePosition { }
@@ -71,6 +121,16 @@ export interface OffsetSourcePosition extends SourcePosition {
 export interface LineSourcePosition extends SourcePosition {
     file: string
     line: number
+}
+
+export interface TypeInfo extends EntityInfo {
+    name: string
+    declAs: DeclaredAs // "Nil" |
+    fullName: string
+    typeArgs: [TypeInfo]
+    members: [EntityInfo]
+    pos?: SourcePosition
+    typeParams: [TypeInfo]
 }
 
 export interface BasicTypeInfo extends TypeInfo {
@@ -104,4 +164,42 @@ export interface RefactoringDesc {
 export interface Point {
     from: number
     to: number
+}
+
+export interface SymbolSearchResult extends Typehinted {
+    name: string
+    localName: string
+    declAs: DeclaredAs
+    pos?: SourcePosition
+}
+
+export interface TypeSearchResult extends SymbolSearchResult {}
+
+export interface MethodSearchResult extends SymbolSearchResult {
+  ownerName: string
+}
+
+export interface ImportSuggestions extends Typehinted {
+    symLists: [[SymbolSearchResult]]
+}
+
+export interface DebugVmStatus extends Typehinted {
+    status: string
+}
+
+export interface DebugVmSuccess extends DebugVmStatus { }
+
+export interface DebugVmError extends DebugVmStatus {
+    errorCode: number
+    details: string
+}
+
+export interface Breakpoint extends Typehinted {
+    file: string
+    line: number
+}
+
+export interface BreakpointList extends Typehinted {
+    active: [Breakpoint]
+    pending: [Breakpoint]
 }

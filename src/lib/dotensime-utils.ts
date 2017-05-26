@@ -28,7 +28,7 @@ export function parseDotEnsime(path: string): PromiseLike<DotEnsime> {
         const scalaVersion = dotEnsimeJs[':scala-version']
         const scalaEdition = scalaVersion.substring(0, 4)
 
-        return {
+        const dotEmsime: DotEnsime = {
             name: dotEnsimeJs[':name'] as string,
             scalaVersion:  scalaVersion as string,
             scalaEdition: scalaEdition as string,
@@ -40,7 +40,9 @@ export function parseDotEnsime(path: string): PromiseLike<DotEnsime> {
             dotEnsimePath: path as string,
             sourceRoots: sourceRoots as [string],
             serverJars: dotEnsimeJs[':ensime-server-jars'],
-        } as DotEnsime
+        }
+
+        return dotEmsime
     })
 }
 
@@ -58,14 +60,10 @@ export function allDotEnsimesInPaths(paths: [string]): PromiseLike<Array<{ path:
             })
     )
     const promise = Promise.all(promises)
-    const result = promise.then(dotEnsimesUnflattened => {
+    return promise.then(dotEnsimesUnflattened => {
         const thang = _.flattenDeep<string>(dotEnsimesUnflattened)
-        function toObj(path: string) {
-            return { path: path as string }
-        }
-        return thang.map(toObj)
+        return thang.map((path: string) => ({ path }))
     })
-    return result
 }
 
 export function dotEnsimesFilter(path: string, stats: any) {

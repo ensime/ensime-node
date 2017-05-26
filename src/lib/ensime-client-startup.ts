@@ -1,3 +1,4 @@
+import {ChildProcess} from 'child_process'
 import {ensureExists} from './file-utils'
 import {createConnection, ServerConnection} from './server-api/server-connection'
 import fs = require('fs')
@@ -9,66 +10,53 @@ import {DotEnsime, ServerStarter} from './types'
 
 const log = loglevel.getLogger('ensime.startup')
 
-function removeTrailingNewline(str: string) {
-    return str.replace(/^\s+|\s+$/g, '')
-}
+const removeTrailingNewline = (str: string) => str.replace(/^\s+|\s+$/g, '')
+
+const whenAdded = (file: string) =>
+    new Promise((resolve, reject) => {
+        log.debug('starting watching for : ' + file)
+
+        const watcher = chokidar.watch(file, {
+            persistent: true,
+        }).on('all', (event, path) => {
+            log.debug('Seen: ', path)
+            watcher.close()
+            resolve()
+        })
+
+        log.debug('watching…')
+    })
 
 //  Start an ensime client given path to .ensime. If server already running, just use, else startup that too.
 export default function(serverStarter: ServerStarter) {
     log.debug('creating client starter function from ServerStarter')
-    return (parsedDotEnsime: DotEnsime, serverVersion: string, generalHandler: (msg: string) => any): PromiseLike<ServerConnection> => {
+    return (parsedDotEnsime: DotEnsime, serverVersion: string): PromiseLike<ServerConnection> => {
 
         log.debug('trying to start client')
-        return new Promise<ServerConnection>((resolve, reject) => {
 
-            ensureExists(parsedDotEnsime.cacheDir).then(() => {
+        return ensureExists(parsedDotEnsime.cacheDir).then(() => {
+            const httpPortFilePath = parsedDotEnsime.cacheDir + path.sep + 'http'
 
-                const httpPortFilePath = parsedDotEnsime.cacheDir + path.sep + 'http'
+            let serverProcessRef: PromiseLike<ChildProcess> = Promise.resolve(undefined)
 
-                if (fs.existsSync(httpPortFilePath)) {
-                    // server running, no need to start
-                    log.debug('port file already there, starting client')
-                    const httpPort = removeTrailingNewline(fs.readFileSync(httpPortFilePath).toString())
-                    const connectionPromise = createConnection(httpPort, generalHandler, serverVersion)
-                    connectionPromise.then(connection => {
-                        log.debug('got a connection')
-                        resolve(connection)
-                    })
-                } else {
-                    let serverPid
+            if (!fs.existsSync(httpPortFilePath)) {
+                log.debug('no server running, start that first…')
+                serverProcessRef = Promise.all([
+                    whenAdded(httpPortFilePath),
+                    serverStarter(parsedDotEnsime)
+                ]).then(([, serverProcess]) => serverProcess)
+            } else {
+                log.debug('port file already there, starting client')
+            }
 
-                    const whenAdded = (file: string) =>
-                        new Promise((resolve, reject) => {
-                            log.debug('starting watching for : ' + file)
-
-                            const watcher = chokidar.watch(file, {
-                                persistent: true,
-                            }).on('all', (event, path) => {
-                                log.debug('Seen: ', path)
-                                watcher.close()
-                                resolve()
-                            })
-
-                            log.debug('watching…')
-                        })
-
-                    whenAdded(httpPortFilePath).then(() => {
-                        log.debug('got a port file')
-                        const httpPort = removeTrailingNewline(fs.readFileSync(httpPortFilePath).toString())
-                        const connectionPromise = createConnection(httpPort, generalHandler, serverPid)
-                        connectionPromise.then(connection => {
-                            log.debug('got a connection')
-                            resolve(connection)
-                        })
-                    })
-
-                    log.debug('no server running, start that first…')
-                    serverStarter(parsedDotEnsime).then(pid => serverPid = pid)
-                }
-
-            }, failToCreateCacheDir => {
-                reject(failToCreateCacheDir)
+            return serverProcessRef.then(serverProcess => {
+                const httpPort = removeTrailingNewline(fs.readFileSync(httpPortFilePath).toString())
+                const connectionPromise = createConnection(httpPort, serverProcess)
+                return connectionPromise.then(connection => {
+                    log.debug('got a connection')
+                    return connection
+                })
             })
         })
     }
-};
+}
