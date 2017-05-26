@@ -25,7 +25,7 @@ export interface DotEnsime {
     javaFlags: string
     rootDir: string
     cacheDir: string
-    compilerJars: string
+    compilerJars: [string]
     dotEnsimePath: string
     sourceRoots: [string]
     serverJars: [string]

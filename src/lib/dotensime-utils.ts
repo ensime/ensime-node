@@ -36,7 +36,7 @@ export function parseDotEnsime(path: string): PromiseLike<DotEnsime> {
             javaFlags: dotEnsimeJs[':java-flags'] as string,
             rootDir: dotEnsimeJs[':root-dir'] as string,
             cacheDir: dotEnsimeJs[':cache-dir'] as string,
-            compilerJars: dotEnsimeJs[':scala-compiler-jars'] as string,
+            compilerJars: dotEnsimeJs[':scala-compiler-jars'],
             dotEnsimePath: path as string,
             sourceRoots: sourceRoots as [string],
             serverJars: dotEnsimeJs[':ensime-server-jars'],
