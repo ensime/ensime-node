@@ -16,9 +16,9 @@ export function startServerFromDotEnsimeCP(
 ): PromiseLike<ChildProcess> {
     log.debug('starting server from file')
     return new Promise<ChildProcess>((resolve, reject) => {
-            const pid = startServerFromClasspath(dotEnsime.serverJars.concat(dotEnsime.compilerJars), dotEnsime, ensimeServerFlags)
-            pid.then(resolve)
-        })
+      const pid = startServerFromClasspath(dotEnsime.serverJars.concat(dotEnsime.compilerJars), dotEnsime, ensimeServerFlags)
+      pid.then(resolve)
+    })
 }
 
 export function startServerFromAssemblyJar(assemblyJar: string, dotEnsime: DotEnsime, ensimeServerFlags = '') {
