@@ -32,10 +32,14 @@ export interface ClearAllScalaNotes extends Event { }
 /** The presentation compiler has invalidated all existing notes.  */
 export interface ClearAllJavaNotes extends Event { }
 
+export interface NoteSeverity extends Typehinted {
+    typehint: 'NoteError' | 'NoteWarn' | 'NoteInfo'
+}
+
 export interface Note {
     file: string,
     msg: string,
-    severity: string,
+    severity: NoteSeverity,
     beg: number,
     end: number,
     line: number,
@@ -106,7 +110,7 @@ export interface EntityInfo extends Typehinted {
     members: [EntityInfo]
 }
 
-export interface Void extends EntityInfo { }
+export interface Void extends Typehinted { }
 
 export interface SourcePosition extends Typehinted { }
 export interface EmptySourcePosition extends SourcePosition { }

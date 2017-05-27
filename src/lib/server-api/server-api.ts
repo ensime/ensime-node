@@ -130,7 +130,7 @@ export function apiOf(client: ServerConnection): Api {
             })
         },
 
-        getSymbolAtPoint(path: string, offset): PromiseLike<SymbolInfo> {
+        getSymbolAtPoint(path: string, offset: number): PromiseLike<SymbolInfo> {
             const req = {
                 file: path,
                 point: offset,
@@ -158,7 +158,7 @@ export function apiOf(client: ServerConnection): Api {
             })
         },
 
-        typecheckFile(filePath: string) {
+        typecheckFile(filePath: string): PromiseLike<Void> {
             const fileInfo: SourceFileInfo = {
                 file: filePath,
             }
@@ -297,9 +297,9 @@ export interface DebuggerApi {
 export interface Api {
     onEvents: (listener: EventHandler, once?: boolean) => void
     getConnectionInfo: () => PromiseLike<ConnectionInfo>
-    getCompletions: (filePath: string, bufferText: any, offset: any, noOfAutocompleteSuggestions: any) => PromiseLike<CompletionsResponse>
-    getSymbolAtPoint: (path: string, offset: any) => PromiseLike<SymbolInfo>
-    typecheckFile: (path: string) => PromiseLike<Typehinted>
+    getCompletions: (filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number) => PromiseLike<CompletionsResponse>
+    getSymbolAtPoint: (path: string, offset: number) => PromiseLike<SymbolInfo>
+    typecheckFile: (path: string) => PromiseLike<Void>
     typecheckBuffer: (path: string, text: string) => void
     symbolByName: (qualifiedName: any) => PromiseLike<Typehinted>
     getImplicitInfo: (path: string, startO: number, endO: number) => PromiseLike<Typehinted>

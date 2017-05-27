@@ -13,7 +13,7 @@
     "test:coverage": "node node_modules/istanbul/lib/cli.js cover -e .ts  -x \"*.d.ts\" -x \"*.spec.ts\" node_modules/jasmine/bin/jasmine.js -- JASMINE_CONFIG_PATH=jasmine.json",
     "lint": "tslint --format stylish --force src/**/*.ts",
     "watch": "gulp watch",
-    "clean": "gulp clean"
+    "clean": "rm ./release -rf"
   },
   "repository": "https://github.com/ensime/ensime-node",
   "license": "MIT",
@@ -32,9 +32,8 @@
   "devDependencies": {
     "assert": "1.4.1",
     "gulp": "3.9.1",
-    "gulp-jasmine": "2.3.0",
     "gulp-sourcemaps": "1.6.0",
-    "gulp-typescript": "3.1.6",
+    "gulp-typescript": "3.1.7",
     "istanbul": "1.1.0-alpha.1",
     "jasmine": "2.6.0",
     "jasmine-focused": "1.0.7",
@@ -44,8 +43,8 @@
     "rimraf": "2.5.2",
     "run-sequence": "1.2.2",
     "ts-node": "3.0.4",
-    "tslint": "5.2.0",
-    "typescript": "2.3.2",
+    "tslint": "5.3.2",
+    "typescript": "2.3.3",
     "typings": "2.1.1"
   },
   "engines": {

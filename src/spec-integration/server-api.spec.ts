@@ -7,16 +7,22 @@ import {Api} from '../lib/server-api/server-api'
 import {ServerConnection} from '../lib/server-api/server-connection'
 import {
     AnalyzerReady,
+    ClearAllScalaNotes,
     Event,
     FullTypeCheckComplete,
     ImportSuggestions,
     IndexerReady,
+    NewScalaNotes,
+    Note,
     SendBackgroundMessage,
-    TypeInfo
+    TypeInfo,
+    Void
 } from '../lib/server-api/server-protocol'
 import {expectEvents, setupProject} from './utils'
 
 const log = loglevel.getLogger('server-api')
+
+const voidResponse: Void = { typehint: 'VoidResponse' }
 
 describe('Server API', () => {
     let instance: EnsimeInstance<any>
@@ -33,7 +39,17 @@ describe('Server API', () => {
 
             return _instance.addFiles({
              [path.join('src', 'main', 'scala', 'Test_Types.scala')]: 'case class User(name: String, age: Int)',
-             [path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala')]: 'Success("Test")'
+             [path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala')]: 'Success("Test")',
+             [path.join('src', 'main', 'scala', 'Test_Typecheck_File.scala')]: `
+                 import scala.utilss._
+
+                 object Main {
+                   def main(args: Array[String]) {
+                     val user: String = 2
+                     Success("Test")
+                   }
+                 }
+             `
          }).then(() =>  done())
         })
     })
@@ -82,7 +98,7 @@ describe('Server API', () => {
         done()
     })
 
-    it('should get import suggestionsRes', async done => {
+    it('should get import suggestions', async done => {
         const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala'))
         const expectedimportSuggestionsRes = {
             typehint: 'ImportSuggestions',
@@ -103,5 +119,104 @@ describe('Server API', () => {
         const importSuggestionsRes = await api.getImportSuggestions(targetFile, 0, 'Success')
         expect(importSuggestionsRes).toEqual(expectedimportSuggestionsRes)
         done()
+    })
+
+    it('should typecheck file', async done => {
+        const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Typecheck_File.scala'))
+
+        const clearAllScalaNotesEvent: ClearAllScalaNotes = {
+            typehint: 'ClearAllScalaNotesEvent'
+        }
+        const newScalaNotesEvent1: NewScalaNotes = {
+            typehint: 'NewScalaNotesEvent',
+            isFull: false,
+            notes: [{
+              beg: 121,
+              line: 5,
+              col: 50,
+              end: 121,
+              file: targetFile,
+              msg: 'Procedure syntax is deprecated. Convert procedure `main` to method by adding `: Unit =`.',
+              severity: {
+                typehint: 'NoteWarn'
+              }
+          }]
+        }
+        const newScalaNotesEvent2: NewScalaNotes = {
+            typehint: 'NewScalaNotesEvent',
+            isFull: false,
+            notes: [{
+              beg: 25,
+              line: 2,
+              col: 31,
+              end: 37,
+              file: targetFile,
+              msg: 'object utilss is not a member of package scala',
+              severity: {
+                typehint: 'NoteError'
+              }
+          }]
+        }
+        const newScalaNotesEvent3: NewScalaNotes = {
+            typehint: 'NewScalaNotesEvent',
+            isFull: false,
+            notes: [{
+              beg: 163,
+              line: 6,
+              col: 41,
+              end: 164,
+              file: targetFile,
+              msg: 'type mismatch;\n found   : Int(2)\n required: String',
+              severity: {
+                typehint: 'NoteError'
+              }
+          }]
+        }
+        const newScalaNotesEvent4: NewScalaNotes = {
+            typehint: 'NewScalaNotesEvent',
+            isFull: false,
+            notes: [{
+              beg: 186,
+              line: 7,
+              col: 22,
+              end: 193,
+              file: targetFile,
+              msg: 'not found: value Success',
+              severity: {
+                typehint: 'NoteError'
+              }
+          }]
+        }
+        const newScalaNotesEvent5: NewScalaNotes = {
+            typehint: 'NewScalaNotesEvent',
+            isFull: false,
+            notes: [{
+              beg: 18,
+              line: 2,
+              col: 38,
+              end: 39,
+              file: targetFile,
+              msg: 'Unused import',
+              severity: {
+                typehint: 'NoteWarn'
+              }
+          }]
+        }
+        const fullTypeCheckCompleteEvent: FullTypeCheckComplete = {
+            typehint: 'FullTypeCheckCompleteEvent'
+        }
+
+        const events = expectEvents(api, [
+            clearAllScalaNotesEvent,
+            newScalaNotesEvent1,
+            newScalaNotesEvent2,
+            newScalaNotesEvent3,
+            newScalaNotesEvent4,
+            newScalaNotesEvent5,
+            fullTypeCheckCompleteEvent])
+
+        const typecheckFileRes = await api.typecheckFile(targetFile)
+        expect(typecheckFileRes).toEqual(voidResponse)
+        events.then(() => done())
     })
 })

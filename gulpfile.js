@@ -2,7 +2,6 @@ const gulp = require('gulp');
 const ts = require('gulp-typescript');
 const merge = require('merge2');
 const sourcemaps = require('gulp-sourcemaps');
-const rimraf = require('rimraf');
 const runSequence = require('run-sequence');
 const tsProject = ts.createProject('tsconfig.json');
 
@@ -30,8 +29,6 @@ gulp.task('copy-js', () =>
 
 gulp.task('compile', ['compile-ts']);
 gulp.task('build', ['compile', 'copy-js']);
-
-gulp.task('clean', cb => rimraf('./release', cb));
 
 gulp.task('default', cb => runSequence(['clean, build'], cb));
 
