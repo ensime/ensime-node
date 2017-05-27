@@ -10,6 +10,8 @@ import {
     ClearAllScalaNotes,
     Event,
     FullTypeCheckComplete,
+    ImplicitInfo,
+    ImplicitInfos,
     ImportSuggestions,
     IndexerReady,
     NewScalaNotes,
@@ -45,8 +47,8 @@ describe('Server API', () => {
 
                  object Main {
                    def main(args: Array[String]) {
-                     val user: String = 2
-                     Success("Test")
+                     val userName: String = 2
+                     Success(userName)
                    }
                  }
              `
@@ -161,10 +163,10 @@ describe('Server API', () => {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-              beg: 163,
+              beg: 167,
               line: 6,
-              col: 41,
-              end: 164,
+              col: 45,
+              end: 168,
               file: targetFile,
               msg: 'type mismatch;\n found   : Int(2)\n required: String',
               severity: {
@@ -176,10 +178,10 @@ describe('Server API', () => {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-              beg: 186,
+              beg: 190,
               line: 7,
               col: 22,
-              end: 193,
+              end: 197,
               file: targetFile,
               msg: 'not found: value Success',
               severity: {
@@ -216,6 +218,33 @@ describe('Server API', () => {
             fullTypeCheckCompleteEvent])
 
         const typecheckFileRes = await api.typecheckFile(targetFile)
+        expect(typecheckFileRes).toEqual(voidResponse)
+        events.then(() => done())
+    })
+
+    it('should typecheck buffer', async done => {
+        const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Typecheck_File.scala'))
+
+        const clearAllScalaNotesEvent: ClearAllScalaNotes = {
+            typehint: 'ClearAllScalaNotesEvent'
+        }
+        const fullTypeCheckCompleteEvent: FullTypeCheckComplete = {
+            typehint: 'FullTypeCheckCompleteEvent'
+        }
+
+        const events = expectEvents(api, [
+            clearAllScalaNotesEvent,
+            fullTypeCheckCompleteEvent])
+
+        const typecheckFileRes = await api.typecheckBuffer(targetFile, `
+            import scala.util._
+            object Main {
+              def main(args: Array[String]): Unit = {
+                val userName: String = "Martin"
+                Success(userName)
+              }
+            }
+        `)
         expect(typecheckFileRes).toEqual(voidResponse)
         events.then(() => done())
     })

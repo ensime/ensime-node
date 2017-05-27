@@ -7,6 +7,7 @@ import {
     ConnectionInfo,
     DebugVmStatus,
     False,
+    ImplicitInfos,
     ImportSuggestions,
     Point,
     RefactoringDesc,
@@ -108,7 +109,7 @@ export function apiOf(client: ServerConnection): Api {
             client.onEvents(listener, once)
         },
 
-        getConnectionInfo() {
+        getConnectionInfo(): PromiseLike<ConnectionInfo> {
             return client.post<ConnectionInfo>({ typehint: 'ConnectionInfoReq' })
         },
 
@@ -144,7 +145,7 @@ export function apiOf(client: ServerConnection): Api {
             })
         },
 
-        typecheckBuffer(filePath: string, text: string) {
+        typecheckBuffer(filePath: string, text: string): PromiseLike<Void> {
             return withTempFile(filePath, text).then(tempFilePath => {
                 const fileInfo: SourceFileInfo = {
                     contentsIn: tempFilePath,
@@ -177,11 +178,8 @@ export function apiOf(client: ServerConnection): Api {
             return client.post(msg)
         },
 
-        getImplicitInfo(path: string, startO: number, endO: number) {
-            const range: OffsetRange = {
-                from: startO,
-                to: endO,
-            }
+        getImplicitInfo(path: string, from: number, to: number): PromiseLike<ImplicitInfos> {
+            const range: OffsetRange = { from, to }
             const msg = {
                 file: path,
                 range,
@@ -190,11 +188,11 @@ export function apiOf(client: ServerConnection): Api {
             return client.post(msg)
         },
 
-        typecheckAll() {
+        typecheckAll(): PromiseLike<Void> {
             return client.post({ typehint: 'TypecheckAllReq' })
         },
 
-        unloadAll() {
+        unloadAll(): PromiseLike<Void> {
             return client.post({ typehint: 'UnloadAllReq' })
         },
 
@@ -300,12 +298,12 @@ export interface Api {
     getCompletions: (filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number) => PromiseLike<CompletionsResponse>
     getSymbolAtPoint: (path: string, offset: number) => PromiseLike<SymbolInfo>
     typecheckFile: (path: string) => PromiseLike<Void>
-    typecheckBuffer: (path: string, text: string) => void
+    typecheckBuffer: (path: string, text: string) => PromiseLike<Void>
     symbolByName: (qualifiedName: any) => PromiseLike<Typehinted>
-    getImplicitInfo: (path: string, startO: number, endO: number) => PromiseLike<Typehinted>
+    getImplicitInfo: (path: string, from: number, to: number) => PromiseLike<ImplicitInfos>
     getRefactoringPatch: (procId: number, refactoring: RefactoringDesc) => PromiseLike<Typehinted>
-    typecheckAll(): void
-    unloadAll(): void
+    typecheckAll(): PromiseLike<Void>
+    unloadAll(): PromiseLike<Void>
     searchPublicSymbols(keywords: string[], maxSymbols: number): PromiseLike<Typehinted>
     getDocUriAtPoint(file: string, point: Point): PromiseLike<Typehinted>
     getImportSuggestions(file: string, characterIndex: number, symbol: string, maxResults?: number): PromiseLike<ImportSuggestions>

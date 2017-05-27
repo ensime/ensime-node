@@ -61,23 +61,30 @@ export interface NewJavaNotes extends Event {
 export interface True extends Typehinted {}
 export interface False extends Typehinted {}
 
-export interface Param {
-    localName: string
-}
-
 export interface ConnectionInfo extends Typehinted {
     pid?: number
     implementation: [{name: string}]
     version: string
 }
 
-export interface ImplicitParamInfo extends Typehinted {
-    fun: Param // Not really
-    params: [Param]
+export interface ImplicitInfo extends Typehinted { }
+
+export interface ImplicitParamInfo extends ImplicitInfo {
+    start: number
+    end: number
+    fun: SymbolInfo // Not really
+    params: [SymbolInfo]
+    funIsImplicit: boolean
 }
 
-export interface ImplicitConversionInfo extends Typehinted {
-    fun: Param
+export interface ImplicitConversionInfo extends ImplicitInfo {
+    start: number
+    end: number
+    fun: SymbolInfo
+}
+
+export interface ImplicitInfos extends Typehinted {
+    infos: [ImplicitInfo]
 }
 
 export interface SymbolInfo extends Typehinted {
@@ -85,7 +92,6 @@ export interface SymbolInfo extends Typehinted {
     localName: string
     declPos?: SourcePosition
     type: TypeInfo
-    isCallable: boolean
 }
 
 export interface CompletionsResponse extends Typehinted {
