@@ -10,6 +10,7 @@ const log = loglevel.getLogger('ensime.client')
 export type CallId = number
 export type CallbackMap = Map<CallId, Promise.Resolver<any>>
 export type EventHandler = (ev: Event) => void
+export type Cancellable = () => void
 
 /**
  * A running and connected ensime client
@@ -32,12 +33,19 @@ export class ServerConnection {
         this.serverProcess = serverProcess
     }
 
-    public onEvents(listener: EventHandler, once: boolean = false) {
+    /**
+     * Register a listener to handle any asyncronic messages
+     * @param  {EventHandler} listener
+     * @param  {boolean} once if it's true, the listener is only going to be executed once
+     * @return {Cancellable} returns a function to remove the listener, when it is executed
+     */
+    public onEvents(listener: EventHandler, once: boolean = false): Cancellable {
         if (!once) {
             this.serverEvents.on('events', listener)
         } else {
             this.serverEvents.once('events', listener)
         }
+        return () => this.serverEvents.removeListener('events', listener)
     }
 
     /**
@@ -75,6 +83,8 @@ export function createConnection(httpPort: string, serverProcess?: ChildProcess)
 
     const callbackMap: CallbackMap = new Map()
     const serverEvents: EventEmitter = new EventEmitter()
+
+    serverEvents.setMaxListeners(50)
 
     function handleIncoming(msg) {
         const json = JSON.parse(msg)

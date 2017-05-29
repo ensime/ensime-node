@@ -2,7 +2,7 @@
 import * as fs from 'fs-extra'
 import * as path from 'path'
 
-import { readFile, writeFile } from '../lib/file-utils'
+import { writeFile } from '../lib/file-utils'
 
 import * as loglevel from 'loglevel'
 import * as temp from 'temp'
@@ -118,13 +118,9 @@ function startEnsime(dotEnsimePath: string, serverVersion: string = '2.0.0-M1'):
     return dotEnsimeUtils.parseDotEnsime(dotEnsimePath).then(dotEnsime => {
         log.debug('got a parsed .ensime')
         const assemblyJar = process.env.ENSIME_ASSEMBLY_JAR
-        let serverStarter: ServerStarter
-
-        if (!assemblyJar) {
-            serverStarter = (project: DotEnsime) => startServerFromDotEnsimeCP(project)
-        } else {
-            serverStarter = (project: DotEnsime) => startServerFromAssemblyJar(assemblyJar, project)
-        }
+        const serverStarter: ServerStarter = !assemblyJar ?
+            (project: DotEnsime) => startServerFromDotEnsimeCP(project)
+            : (project: DotEnsime) => startServerFromAssemblyJar(assemblyJar, project)
 
         return clientStarterFromServerStarter(serverStarter)(dotEnsime, serverVersion)
     })

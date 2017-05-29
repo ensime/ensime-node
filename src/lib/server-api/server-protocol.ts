@@ -167,8 +167,106 @@ export interface Type extends Typehinted {
     declAs: any
 }
 
-export interface RefactoringDesc {
-    typehint: string
+export interface RefactorType extends Typehinted { }
+
+export interface Rename extends RefactorType {
+    typehint: 'Rename'
+}
+
+export interface ExtractMethod extends RefactorType {
+    typehint: 'ExtractMethod'
+}
+
+export interface ExtractLocal extends RefactorType {
+    typehint: 'ExtractLocal'
+}
+
+export interface InlineLocal extends RefactorType {
+    typehint: 'InlineLocal'
+}
+
+export interface OrganizeImports extends RefactorType {
+    typehint: 'OrganizeImports'
+}
+
+export interface AddImport extends RefactorType {
+    typehint: 'AddImport'
+}
+
+export interface ExpandMatchCases extends RefactorType {
+    typehint: 'ExpandMatchCases'
+}
+
+export interface RefactorFailure extends Typehinted {
+  procedureId: number
+  reason: string
+  status: string
+}
+
+export interface RefactorDiffEffect extends Typehinted {
+  procedureId: number,
+  refactorType: RefactorType,
+  diff: string
+}
+
+export interface RefactorDesc extends Typehinted {
+  refactorType: RefactorType
+}
+
+export interface InlineLocalRefactorDesc extends RefactorDesc {
+    typehint: 'InlineLocalRefactorDesc'
+    refactorType: InlineLocal
+    file: string
+    start: number
+    end: number
+}
+
+export interface RenameRefactorDesc extends RefactorDesc {
+    typehint: 'RenameRefactorDesc'
+    refactorType: Rename
+    newName: string
+    file: string
+    start: number
+    end: number
+}
+
+export interface ExtractMethodRefactorDesc extends RefactorDesc {
+    typehint: 'ExtractMethodRefactorDesc'
+    refactorType: ExtractMethod
+    methodName: string
+    file: string
+    start: number
+    end: number
+}
+
+export interface ExtractLocalRefactorDesc extends RefactorDesc {
+  typehint: 'ExtractLocalRefactorDesc'
+  refactorType: ExtractLocal
+  name: string
+  file: string
+  start: number
+  end: number
+}
+
+export interface OrganiseImportsRefactorDesc extends RefactorDesc {
+    typehint: 'OrganiseImportsRefactorDesc'
+    refactorType: OrganizeImports
+    file: string
+}
+
+export interface AddImportRefactorDesc extends RefactorDesc {
+    typehint: 'AddImportRefactorDesc'
+    refactorType: AddImport
+    qualifiedName: string
+    file: string
+}
+
+export interface ExpandMatchCasesDesc extends RefactorDesc {
+    typehint: 'ExpandMatchCasesDesc'
+    refactorType: ExpandMatchCases
+    file: string
+    start: number
+    end: number
 }
 
 export interface Point {

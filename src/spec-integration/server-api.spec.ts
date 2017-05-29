@@ -1,6 +1,8 @@
 import * as path from 'path'
 import * as temp from 'temp'
 
+import { readFile } from '../lib/file-utils'
+
 import loglevel = require('loglevel')
 import {EnsimeInstance} from '../lib/instance'
 import {Api} from '../lib/server-api/server-api'
@@ -16,6 +18,8 @@ import {
     IndexerReady,
     NewScalaNotes,
     Note,
+    OrganiseImportsRefactorDesc,
+    RefactorDiffEffect,
     SendBackgroundMessage,
     TypeInfo,
     Void
@@ -40,9 +44,9 @@ describe('Server API', () => {
             api = _instance.api
 
             return _instance.addFiles({
-             [path.join('src', 'main', 'scala', 'Test_Types.scala')]: 'case class User(name: String, age: Int)',
-             [path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala')]: 'Success("Test")',
-             [path.join('src', 'main', 'scala', 'Test_Typecheck_File.scala')]: `
+                [path.join('src', 'main', 'scala', 'Test_Types.scala')]: 'case class User(name: String, age: Int)',
+                [path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala')]: 'Success("Test")',
+                [path.join('src', 'main', 'scala', 'Test_Typecheck_File.scala')]: `
                  import scala.utilss._
 
                  object Main {
@@ -51,8 +55,19 @@ describe('Server API', () => {
                      Success(userName)
                    }
                  }
+             `,
+                [path.join('src', 'main', 'scala', 'Test_Refactor_Patch_Org_Imports.scala')]: `
+                import scala._
+                import java.lang.Integer
+                import scala.Int
+                import java._
+
+                trait Temp {
+                  def i(): Int
+                  def j(): Integer
+                }
              `
-         }).then(() =>  done())
+            }).then(() => done())
         })
     })
 
@@ -73,7 +88,7 @@ describe('Server API', () => {
 
         const events = expectEvents(api, [sendBackgroundMessage, analyzerReadyEvent, fullTypeCheckComplete, indexerReadyEvent])
         const connectionInfoRes = await api.getConnectionInfo()
-        expect(connectionInfoRes).toEqual({ typehint: 'ConnectionInfo', implementation: {name: 'ENSIME' }, version: '1.9.1' })
+        expect(connectionInfoRes).toEqual({ typehint: 'ConnectionInfo', implementation: { name: 'ENSIME' }, version: '1.9.1' })
         events.then(() => done())
     })
 
@@ -83,16 +98,16 @@ describe('Server API', () => {
             name: 'User',
             fullName: 'User',
             pos: {
-              typehint: 'OffsetSourcePosition',
-              file: targetFile,
-              offset: 11
+                typehint: 'OffsetSourcePosition',
+                file: targetFile,
+                offset: 11
             },
             typehint: 'BasicTypeInfo',
             typeParams: [],
             typeArgs: [],
             members: [],
             declAs: {
-              typehint: 'Class'
+                typehint: 'Class'
             }
         }
         const typeAtPointRes = await api.getTypeAtPoint(targetFile, 11, 15)
@@ -133,76 +148,76 @@ describe('Server API', () => {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-              beg: 121,
-              line: 5,
-              col: 50,
-              end: 121,
-              file: targetFile,
-              msg: 'Procedure syntax is deprecated. Convert procedure `main` to method by adding `: Unit =`.',
-              severity: {
-                typehint: 'NoteWarn'
-              }
-          }]
+                beg: 121,
+                line: 5,
+                col: 50,
+                end: 121,
+                file: targetFile,
+                msg: 'Procedure syntax is deprecated. Convert procedure `main` to method by adding `: Unit =`.',
+                severity: {
+                    typehint: 'NoteWarn'
+                }
+            }]
         }
         const newScalaNotesEvent2: NewScalaNotes = {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-              beg: 25,
-              line: 2,
-              col: 31,
-              end: 37,
-              file: targetFile,
-              msg: 'object utilss is not a member of package scala',
-              severity: {
-                typehint: 'NoteError'
-              }
-          }]
+                beg: 25,
+                line: 2,
+                col: 31,
+                end: 37,
+                file: targetFile,
+                msg: 'object utilss is not a member of package scala',
+                severity: {
+                    typehint: 'NoteError'
+                }
+            }]
         }
         const newScalaNotesEvent3: NewScalaNotes = {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-              beg: 167,
-              line: 6,
-              col: 45,
-              end: 168,
-              file: targetFile,
-              msg: 'type mismatch;\n found   : Int(2)\n required: String',
-              severity: {
-                typehint: 'NoteError'
-              }
-          }]
+                beg: 167,
+                line: 6,
+                col: 45,
+                end: 168,
+                file: targetFile,
+                msg: 'type mismatch;\n found   : Int(2)\n required: String',
+                severity: {
+                    typehint: 'NoteError'
+                }
+            }]
         }
         const newScalaNotesEvent4: NewScalaNotes = {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-              beg: 190,
-              line: 7,
-              col: 22,
-              end: 197,
-              file: targetFile,
-              msg: 'not found: value Success',
-              severity: {
-                typehint: 'NoteError'
-              }
-          }]
+                beg: 190,
+                line: 7,
+                col: 22,
+                end: 197,
+                file: targetFile,
+                msg: 'not found: value Success',
+                severity: {
+                    typehint: 'NoteError'
+                }
+            }]
         }
         const newScalaNotesEvent5: NewScalaNotes = {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-              beg: 18,
-              line: 2,
-              col: 38,
-              end: 39,
-              file: targetFile,
-              msg: 'Unused import',
-              severity: {
-                typehint: 'NoteWarn'
-              }
-          }]
+                beg: 18,
+                line: 2,
+                col: 38,
+                end: 39,
+                file: targetFile,
+                msg: 'Unused import',
+                severity: {
+                    typehint: 'NoteWarn'
+                }
+            }]
         }
         const fullTypeCheckCompleteEvent: FullTypeCheckComplete = {
             typehint: 'FullTypeCheckCompleteEvent'
@@ -247,5 +262,44 @@ describe('Server API', () => {
         `)
         expect(typecheckFileRes).toEqual(voidResponse)
         events.then(() => done())
+    })
+
+    it('should refactor pathch', async done => {
+        const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Refactor_Patch_Org_Imports.scala'))
+        const params: any = {
+            typehint: 'OrganiseImportsRefactorDesc',
+            refactorType: {
+                typehint: 'OrganizeImports'
+            },
+            file: targetFile
+        }
+        const refactoringPatchRes: any = await api.getRefactoringPatch(1, params)
+        expect(refactoringPatchRes.typehint).toEqual('RefactorDiffEffect')
+        expect(refactoringPatchRes.procedureId).toEqual(1)
+        expect(refactoringPatchRes.refactorType.typehint).toEqual('OrganizeImports')
+        expect(refactoringPatchRes.typehint).toEqual('RefactorDiffEffect')
+        expect(refactoringPatchRes.diff).toBeTruthy()
+
+        const diffContent = await readFile(refactoringPatchRes.diff).then(raw => raw.toString())
+
+        expect(diffContent).toEqual(`
+--- /tmp/ensime-integration-test117429-32048-h3tlba.y9nwvr6bt9/src/main/scala/Test_Refactor_Patch_Org_Imports.scala	2017-05-29 10:03:58 -0300
++++ /tmp/ensime-integration-test117429-32048-h3tlba.y9nwvr6bt9/src/main/scala/Test_Refactor_Patch_Org_Imports.scala	2017-05-29 10:03:58 -0300
+@@ -1,7 +1,7 @@
+ 
+-                import scala._
+-                import java.lang.Integer
+-                import scala.Int
+                 import java._
++                import java.lang.Integer
+ 
++                import scala._
++
+                 trait Temp {
+
+            .websocket closed from server
+        `)
+
+        done()
     })
 })

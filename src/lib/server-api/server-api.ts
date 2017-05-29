@@ -1,6 +1,6 @@
 import * as Promise from 'bluebird'
 import {OffsetRange, SourceFileInfo} from './server-commons'
-import {EventHandler, ServerConnection} from './server-connection'
+import {Cancellable, EventHandler, ServerConnection} from './server-connection'
 import {
     BreakpointList,
     CompletionsResponse,
@@ -10,7 +10,9 @@ import {
     ImplicitInfos,
     ImportSuggestions,
     Point,
-    RefactoringDesc,
+    RefactorDesc,
+    RefactorDiffEffect,
+    RefactorFailure,
     SymbolInfo,
     True,
     Typehinted,
@@ -105,8 +107,8 @@ function debuggerApiOf(client: ServerConnection): DebuggerApi {
 export function apiOf(client: ServerConnection): Api {
 
     return {
-        onEvents(listener: EventHandler, once?: boolean) {
-            client.onEvents(listener, once)
+        onEvents(listener: EventHandler, once?: boolean): Cancellable {
+            return client.onEvents(listener, once)
         },
 
         getConnectionInfo(): PromiseLike<ConnectionInfo> {
@@ -196,11 +198,11 @@ export function apiOf(client: ServerConnection): Api {
             return client.post({ typehint: 'UnloadAllReq' })
         },
 
-        getRefactoringPatch(procId: number, refactoring: RefactoringDesc) {
+        getRefactoringPatch<R extends RefactorDesc>(procId: number, params: R): PromiseLike<RefactorDiffEffect | RefactorFailure> {
             const req = {
                 interactive: false,
                 procId,
-                params: refactoring,
+                params,
                 typehint: 'RefactorReq',
             }
             return client.post(req)
@@ -293,7 +295,7 @@ export interface DebuggerApi {
 }
 
 export interface Api {
-    onEvents: (listener: EventHandler, once?: boolean) => void
+    onEvents: (listener: EventHandler, once?: boolean) => Cancellable
     getConnectionInfo: () => PromiseLike<ConnectionInfo>
     getCompletions: (filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number) => PromiseLike<CompletionsResponse>
     getSymbolAtPoint: (path: string, offset: number) => PromiseLike<SymbolInfo>
@@ -301,7 +303,7 @@ export interface Api {
     typecheckBuffer: (path: string, text: string) => PromiseLike<Void>
     symbolByName: (qualifiedName: any) => PromiseLike<Typehinted>
     getImplicitInfo: (path: string, from: number, to: number) => PromiseLike<ImplicitInfos>
-    getRefactoringPatch: (procId: number, refactoring: RefactoringDesc) => PromiseLike<Typehinted>
+    getRefactoringPatch<R extends RefactorDesc>(procId: number, params: R): PromiseLike<RefactorDiffEffect | RefactorFailure>
     typecheckAll(): PromiseLike<Void>
     unloadAll(): PromiseLike<Void>
     searchPublicSymbols(keywords: string[], maxSymbols: number): PromiseLike<Typehinted>
