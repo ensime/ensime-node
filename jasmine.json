@@ -5,6 +5,6 @@
   "random": false,
   "helpers": [
        "../../node_modules/ts-node/register.js",
-       "./node_modules/jasmine-expect/index.js"
+       "../../src/spec/helper.js"
    ]
 }

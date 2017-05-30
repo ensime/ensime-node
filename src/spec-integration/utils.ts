@@ -23,8 +23,6 @@ import {Event} from '../lib/server-api/server-protocol'
 
 import {spawn} from 'child_process'
 
-loglevel.setDefaultLevel(LogLevel.TRACE)
-loglevel.setLevel('trace')
 const log = loglevel.getLogger('spec-utils')
 
 temp.track()

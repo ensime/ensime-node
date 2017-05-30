@@ -10,6 +10,7 @@ import {ServerConnection} from '../lib/server-api/server-connection'
 import {
     AnalyzerReady,
     ClearAllScalaNotes,
+    CompletionsResponse,
     Event,
     FullTypeCheckComplete,
     ImplicitInfo,
@@ -27,6 +28,8 @@ import {
 import {expectEvents, setupProject} from './utils'
 
 const log = loglevel.getLogger('server-api')
+loglevel.setDefaultLevel(LogLevel.INFO)
+loglevel.setLevel('trace')
 
 const voidResponse: Void = { typehint: 'VoidResponse' }
 
@@ -47,26 +50,27 @@ describe('Server API', () => {
                 [path.join('src', 'main', 'scala', 'Test_Types.scala')]: 'case class User(name: String, age: Int)',
                 [path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala')]: 'Success("Test")',
                 [path.join('src', 'main', 'scala', 'Test_Typecheck_File.scala')]: `
-                 import scala.utilss._
+                    import scala.utilss._
 
-                 object Main {
-                   def main(args: Array[String]) {
-                     val userName: String = 2
-                     Success(userName)
-                   }
-                 }
-             `,
+                    object Main {
+                      def main(args: Array[String]) {
+                       val userName: String = 2
+                       Success(userName)
+                     }
+                    }
+                `,
+                [path.join('src', 'main', 'scala', 'Test_Completitions.scala')]: 'object Test_Completitions { scala.concurrent.Future. }',
                 [path.join('src', 'main', 'scala', 'Test_Refactor_Patch_Org_Imports.scala')]: `
-                import scala._
-                import java.lang.Integer
-                import scala.Int
-                import java._
+                    import scala._
+                    import java.lang.Integer
+                    import scala.Int
+                    import java._
 
-                trait Temp {
-                  def i(): Int
-                  def j(): Integer
-                }
-             `
+                    trait Temp {
+                      def i(): Int
+                      def j(): Integer
+                    }
+                `
             }).then(() => done())
         })
     })
@@ -89,7 +93,7 @@ describe('Server API', () => {
         const events = expectEvents(api, [sendBackgroundMessage, analyzerReadyEvent, fullTypeCheckComplete, indexerReadyEvent])
         const connectionInfoRes = await api.getConnectionInfo()
         expect(connectionInfoRes).toEqual({ typehint: 'ConnectionInfo', implementation: { name: 'ENSIME' }, version: '1.9.1' })
-        events.then(() => done())
+        await events.then(() => done())
     })
 
     it('should get type at point', async done => {
@@ -148,10 +152,10 @@ describe('Server API', () => {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-                beg: 121,
+                beg: 130,
                 line: 5,
-                col: 50,
-                end: 121,
+                col: 53,
+                end: 130,
                 file: targetFile,
                 msg: 'Procedure syntax is deprecated. Convert procedure `main` to method by adding `: Unit =`.',
                 severity: {
@@ -159,14 +163,15 @@ describe('Server API', () => {
                 }
             }]
         }
+
         const newScalaNotesEvent2: NewScalaNotes = {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-                beg: 25,
+                beg: 28,
                 line: 2,
-                col: 31,
-                end: 37,
+                col: 34,
+                end: 40,
                 file: targetFile,
                 msg: 'object utilss is not a member of package scala',
                 severity: {
@@ -178,10 +183,10 @@ describe('Server API', () => {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-                beg: 167,
+                beg: 178,
                 line: 6,
-                col: 45,
-                end: 168,
+                col: 47,
+                end: 179,
                 file: targetFile,
                 msg: 'type mismatch;\n found   : Int(2)\n required: String',
                 severity: {
@@ -193,10 +198,10 @@ describe('Server API', () => {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-                beg: 190,
+                beg: 203,
                 line: 7,
-                col: 22,
-                end: 197,
+                col: 24,
+                end: 210,
                 file: targetFile,
                 msg: 'not found: value Success',
                 severity: {
@@ -208,10 +213,10 @@ describe('Server API', () => {
             typehint: 'NewScalaNotesEvent',
             isFull: false,
             notes: [{
-                beg: 18,
+                beg: 21,
                 line: 2,
-                col: 38,
-                end: 39,
+                col: 41,
+                end: 42,
                 file: targetFile,
                 msg: 'Unused import',
                 severity: {
@@ -234,7 +239,7 @@ describe('Server API', () => {
 
         const typecheckFileRes = await api.typecheckFile(targetFile)
         expect(typecheckFileRes).toEqual(voidResponse)
-        events.then(() => done())
+        await events.then(() => done())
     })
 
     it('should typecheck buffer', async done => {
@@ -261,11 +266,511 @@ describe('Server API', () => {
             }
         `)
         expect(typecheckFileRes).toEqual(voidResponse)
-        events.then(() => done())
+        await events.then(() => done())
+    })
+
+    it('should get completions', async done => {
+        const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Completitions.scala'))
+        const targetFileContent = await readFile(targetFile).then(raw => raw.toString())
+        const completionsRes: CompletionsResponse = await api.getCompletions(targetFile, targetFileContent, 52, 3)
+
+        expect(completionsRes).toEqual({
+          typehint: 'CompletionInfoList',
+          prefix: '',
+          completions: [
+            {
+              typeInfo: {
+                resultType: {
+                  name: 'Future[R]',
+                  fullName: 'scala.concurrent.Future[scala.concurrent.Future.R]',
+                  typehint: 'BasicTypeInfo',
+                  typeParams: [],
+                  typeArgs: [
+                    {
+                      name: 'R',
+                      fullName: 'scala.concurrent.Future.R',
+                      typehint: 'BasicTypeInfo',
+                      typeParams: [],
+                      typeArgs: [],
+                      members: [],
+                      declAs: {
+                        typehint: 'Nil'
+                      }
+                    }
+                  ],
+                  members: [],
+                  declAs: {
+                    typehint: 'Trait'
+                  }
+                },
+                name: '(TraversableOnce[Future[T]]) => (R) => ((R, T) => R) => (ExecutionContext) => Future[R]',
+                paramSections: [
+                  {
+                    params: [
+                      [
+                        'futures',
+                        {
+                          name: 'TraversableOnce[Future[T]]',
+                          fullName: 'scala.collection.TraversableOnce[scala.concurrent.Future[scala.concurrent.Future.T]]',
+                          typehint: 'BasicTypeInfo',
+                          typeParams: [],
+                          typeArgs: [
+                            {
+                              name: 'Future[T]',
+                              fullName: 'scala.concurrent.Future[scala.concurrent.Future.T]',
+                              typehint: 'BasicTypeInfo',
+                              typeParams: [],
+                              typeArgs: [
+                                {
+                                  name: 'T',
+                                  fullName: 'scala.concurrent.Future.T',
+                                  typehint: 'BasicTypeInfo',
+                                  typeParams: [],
+                                  typeArgs: [],
+                                  members: [],
+                                  declAs: {
+                                    typehint: 'Nil'
+                                  }
+                                }
+                              ],
+                              members: [],
+                              declAs: {
+                                typehint: 'Trait'
+                              }
+                            }
+                          ],
+                          members: [],
+                          declAs: {
+                            typehint: 'Trait'
+                          }
+                        }
+                      ]
+                    ],
+                    isImplicit: false
+                  },
+                  {
+                    params: [
+                      [
+                        'zero',
+                        {
+                          name: 'R',
+                          fullName: 'scala.concurrent.Future.R',
+                          typehint: 'BasicTypeInfo',
+                          typeParams: [],
+                          typeArgs: [],
+                          members: [],
+                          declAs: {
+                            typehint: 'Nil'
+                          }
+                        }
+                      ]
+                    ],
+                    isImplicit: false
+                  },
+                  {
+                    params: [
+                      [
+                        'op',
+                        {
+                          resultType: {
+                            name: 'R',
+                            fullName: 'scala.concurrent.Future.R',
+                            typehint: 'BasicTypeInfo',
+                            typeParams: [],
+                            typeArgs: [],
+                            members: [],
+                            declAs: {
+                              typehint: 'Nil'
+                            }
+                          },
+                          name: '(R, T) => R',
+                          paramSections: [
+                            {
+                              params: [
+                                [
+                                  '_0',
+                                  {
+                                    name: 'R',
+                                    fullName: 'scala.concurrent.Future.R',
+                                    typehint: 'BasicTypeInfo',
+                                    typeParams: [],
+                                    typeArgs: [],
+                                    members: [],
+                                    declAs: {
+                                      typehint: 'Nil'
+                                    }
+                                  }
+                                ],
+                                [
+                                  '_1',
+                                  {
+                                    name: 'T',
+                                    fullName: 'scala.concurrent.Future.T',
+                                    typehint: 'BasicTypeInfo',
+                                    typeParams: [],
+                                    typeArgs: [],
+                                    members: [],
+                                    declAs: {
+                                      typehint: 'Nil'
+                                    }
+                                  }
+                                ]
+                              ],
+                              isImplicit: false
+                            }
+                          ],
+                          fullName: '(scala.concurrent.Future.R, scala.concurrent.Future.T) => scala.concurrent.Future.R',
+                          typehint: 'ArrowTypeInfo',
+                          typeParams: []
+                        }
+                      ]
+                    ],
+                    isImplicit: false
+                  },
+                  {
+                    params: [
+                      [
+                        'executor',
+                        {
+                          name: 'ExecutionContext',
+                          fullName: 'scala.concurrent.ExecutionContext',
+                          typehint: 'BasicTypeInfo',
+                          typeParams: [],
+                          typeArgs: [],
+                          members: [],
+                          declAs: {
+                            typehint: 'Trait'
+                          }
+                        }
+                      ]
+                    ],
+                    isImplicit: true
+                  }
+                ],
+                fullName: '(scala.collection.TraversableOnce[scala.concurrent.Future[scala.concurrent.Future.T]]) => (scala.concurrent.Future.R) => ((scala.concurrent.Future.R, scala.concurrent.Future.T) => scala.concurrent.Future.R) => (scala.concurrent.ExecutionContext) => scala.concurrent.Future[scala.concurrent.Future.R]',
+                typehint: 'ArrowTypeInfo',
+                typeParams: [
+                  {
+                    name: 'T',
+                    fullName: 'scala.concurrent.Future.T',
+                    typehint: 'BasicTypeInfo',
+                    typeParams: [],
+                    typeArgs: [],
+                    members: [],
+                    declAs: {
+                      typehint: 'Nil'
+                    }
+                  },
+                  {
+                    name: 'R',
+                    fullName: 'scala.concurrent.Future.R',
+                    typehint: 'BasicTypeInfo',
+                    typeParams: [],
+                    typeArgs: [],
+                    members: [],
+                    declAs: {
+                      typehint: 'Nil'
+                    }
+                  }
+                ]
+              },
+              name: 'fold',
+              relevance: 90,
+              isInfix: false
+            },
+            {
+              typeInfo: {
+                resultType: {
+                  name: 'Future[Option[T]]',
+                  fullName: 'scala.concurrent.Future[scala.Option[scala.concurrent.Future.T]]',
+                  typehint: 'BasicTypeInfo',
+                  typeParams: [],
+                  typeArgs: [
+                    {
+                      name: 'Option[T]',
+                      fullName: 'scala.Option[scala.concurrent.Future.T]',
+                      typehint: 'BasicTypeInfo',
+                      typeParams: [],
+                      typeArgs: [
+                        {
+                          name: 'T',
+                          fullName: 'scala.concurrent.Future.T',
+                          typehint: 'BasicTypeInfo',
+                          typeParams: [],
+                          typeArgs: [],
+                          members: [],
+                          declAs: {
+                            typehint: 'Nil'
+                          }
+                        }
+                      ],
+                      members: [],
+                      declAs: {
+                        typehint: 'Class'
+                      }
+                    }
+                  ],
+                  members: [],
+                  declAs: {
+                    typehint: 'Trait'
+                  }
+                },
+                name: '(TraversableOnce[Future[T]]) => ((T) => Boolean) => (ExecutionContext) => Future[Option[T]]',
+                paramSections: [
+                  {
+                    params: [
+                      [
+                        'futures',
+                        {
+                          name: 'TraversableOnce[Future[T]]',
+                          fullName: 'scala.collection.TraversableOnce[scala.concurrent.Future[scala.concurrent.Future.T]]',
+                          typehint: 'BasicTypeInfo',
+                          typeParams: [],
+                          typeArgs: [
+                            {
+                              name: 'Future[T]',
+                              fullName: 'scala.concurrent.Future[scala.concurrent.Future.T]',
+                              typehint: 'BasicTypeInfo',
+                              typeParams: [],
+                              typeArgs: [
+                                {
+                                  name: 'T',
+                                  fullName: 'scala.concurrent.Future.T',
+                                  typehint: 'BasicTypeInfo',
+                                  typeParams: [],
+                                  typeArgs: [],
+                                  members: [],
+                                  declAs: {
+                                    typehint: 'Nil'
+                                  }
+                                }
+                              ],
+                              members: [],
+                              declAs: {
+                                typehint: 'Trait'
+                              }
+                            }
+                          ],
+                          members: [],
+                          declAs: {
+                            typehint: 'Trait'
+                          }
+                        }
+                      ]
+                    ],
+                    isImplicit: false
+                  },
+                  {
+                    params: [
+                      [
+                        'p',
+                        {
+                          resultType: {
+                            name: 'Boolean',
+                            fullName: 'scala.Boolean',
+                            typehint: 'BasicTypeInfo',
+                            typeParams: [],
+                            typeArgs: [],
+                            members: [],
+                            declAs: {
+                              typehint: 'Class'
+                            }
+                          },
+                          name: '(T) => Boolean',
+                          paramSections: [
+                            {
+                              params: [
+                                [
+                                  '_0',
+                                  {
+                                    name: 'T',
+                                    fullName: 'scala.concurrent.Future.T',
+                                    typehint: 'BasicTypeInfo',
+                                    typeParams: [],
+                                    typeArgs: [],
+                                    members: [],
+                                    declAs: {
+                                      typehint: 'Nil'
+                                    }
+                                  }
+                                ]
+                              ],
+                              isImplicit: false
+                            }
+                          ],
+                          fullName: '(scala.concurrent.Future.T) => scala.Boolean',
+                          typehint: 'ArrowTypeInfo',
+                          typeParams: []
+                        }
+                      ]
+                    ],
+                    isImplicit: false
+                  },
+                  {
+                    params: [
+                      [
+                        'executor',
+                        {
+                          name: 'ExecutionContext',
+                          fullName: 'scala.concurrent.ExecutionContext',
+                          typehint: 'BasicTypeInfo',
+                          typeParams: [],
+                          typeArgs: [],
+                          members: [],
+                          declAs: {
+                            typehint: 'Trait'
+                          }
+                        }
+                      ]
+                    ],
+                    isImplicit: true
+                  }
+                ],
+                fullName: '(scala.collection.TraversableOnce[scala.concurrent.Future[scala.concurrent.Future.T]]) => ((scala.concurrent.Future.T) => scala.Boolean) => (scala.concurrent.ExecutionContext) => scala.concurrent.Future[scala.Option[scala.concurrent.Future.T]]',
+                typehint: 'ArrowTypeInfo',
+                typeParams: [
+                  {
+                    name: 'T',
+                    fullName: 'scala.concurrent.Future.T',
+                    typehint: 'BasicTypeInfo',
+                    typeParams: [],
+                    typeArgs: [],
+                    members: [],
+                    declAs: {
+                      typehint: 'Nil'
+                    }
+                  }
+                ]
+              },
+              name: 'find',
+              relevance: 90,
+              isInfix: false
+            },
+            {
+              typeInfo: {
+                resultType: {
+                  name: 'Future[T]',
+                  fullName: 'scala.concurrent.Future[scala.concurrent.Future.T]',
+                  typehint: 'BasicTypeInfo',
+                  typeParams: [],
+                  typeArgs: [
+                    {
+                      name: 'T',
+                      fullName: 'scala.concurrent.Future.T',
+                      typehint: 'BasicTypeInfo',
+                      typeParams: [],
+                      typeArgs: [],
+                      members: [],
+                      declAs: {
+                        typehint: 'Nil'
+                      }
+                    }
+                  ],
+                  members: [],
+                  declAs: {
+                    typehint: 'Trait'
+                  }
+                },
+                name: '(=> T) => (ExecutionContext) => Future[T]',
+                paramSections: [
+                  {
+                    params: [
+                      [
+                        'body',
+                        {
+                          resultType: {
+                            name: 'T',
+                            fullName: 'scala.concurrent.Future.T',
+                            typehint: 'BasicTypeInfo',
+                            typeParams: [],
+                            typeArgs: [],
+                            members: [],
+                            declAs: {
+                              typehint: 'Nil'
+                            }
+                          },
+                          name: '=> T',
+                          paramSections: [],
+                          fullName: '=> scala.concurrent.Future.T',
+                          typehint: 'ArrowTypeInfo',
+                          typeParams: []
+                        }
+                      ]
+                    ],
+                    isImplicit: false
+                  },
+                  {
+                    params: [
+                      [
+                        'executor',
+                        {
+                          name: 'ExecutionContext',
+                          fullName: 'scala.concurrent.ExecutionContext',
+                          typehint: 'BasicTypeInfo',
+                          typeParams: [],
+                          typeArgs: [],
+                          members: [],
+                          declAs: {
+                            typehint: 'Trait'
+                          }
+                        }
+                      ]
+                    ],
+                    isImplicit: true
+                  }
+                ],
+                fullName: '(=> scala.concurrent.Future.T) => (scala.concurrent.ExecutionContext) => scala.concurrent.Future[scala.concurrent.Future.T]',
+                typehint: 'ArrowTypeInfo',
+                typeParams: [
+                  {
+                    name: 'T',
+                    fullName: 'scala.concurrent.Future.T',
+                    typehint: 'BasicTypeInfo',
+                    typeParams: [],
+                    typeArgs: [],
+                    members: [],
+                    declAs: {
+                      typehint: 'Nil'
+                    }
+                  }
+                ]
+              },
+              name: 'apply',
+              relevance: 90,
+              isInfix: false
+            }
+          ]
+        })
+
+        done()
     })
 
     it('should refactor patch organize imports', async done => {
         const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Refactor_Patch_Org_Imports.scala'))
+
+        const newScalaNotesEvent: NewScalaNotes = {
+            typehint: 'NewScalaNotesEvent',
+            isFull: false,
+            notes: [{
+                beg: 138,
+                line: 5,
+                col: 33,
+                end: 151,
+                file: targetFile,
+                msg: 'Unused import',
+                severity: {
+                    typehint: 'NoteWarn'
+                }
+            }]
+        }
+        const clearAllScalaNotesEvent: ClearAllScalaNotes = {
+            typehint: 'ClearAllScalaNotesEvent'
+        }
+
+        const events = expectEvents(api, [
+            newScalaNotesEvent,
+            clearAllScalaNotesEvent])
+
         const params: any = {
             typehint: 'OrganiseImportsRefactorDesc',
             refactorType: {
@@ -282,15 +787,15 @@ describe('Server API', () => {
 
         const diffLines = await readFile(refactoringPatchRes.diff).then(raw => raw.toString().split('\n'))
 
-        expect(diffLines[4]).toEqual('-                import scala._')
-        expect(diffLines[5]).toEqual('-                import java.lang.Integer')
-        expect(diffLines[6]).toEqual('-                import scala.Int')
-        expect(diffLines[7]).toEqual('                 import java._')
-        expect(diffLines[8]).toEqual('+                import java.lang.Integer')
+        expect(diffLines[4]).toEqual('-                    import scala._')
+        expect(diffLines[5]).toEqual('-                    import java.lang.Integer')
+        expect(diffLines[6]).toEqual('-                    import scala.Int')
+        expect(diffLines[7]).toEqual('                     import java._')
+        expect(diffLines[8]).toEqual('+                    import java.lang.Integer')
         expect(diffLines[9]).toEqual(' ')
-        expect(diffLines[10]).toEqual('+                import scala._')
+        expect(diffLines[10]).toEqual('+                    import scala._')
         expect(diffLines[11]).toEqual('+')
 
-        done()
+        await events.then(() => done())
     })
 })

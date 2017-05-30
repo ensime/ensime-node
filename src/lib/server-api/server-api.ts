@@ -115,7 +115,7 @@ export function apiOf(client: ServerConnection): Api {
             return client.post<ConnectionInfo>({ typehint: 'ConnectionInfoReq' })
         },
 
-        getCompletions(filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number): PromiseLike<CompletionsResponse> {
+        getCompletions(filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number = 10): PromiseLike<CompletionsResponse> {
             return withTempFile(filePath, bufferText).then(tempFilePath => {
                 const fileInfo: SourceFileInfo = {
                     contentsIn: tempFilePath,
@@ -297,7 +297,7 @@ export interface DebuggerApi {
 export interface Api {
     onEvents: (listener: EventHandler, once?: boolean) => Cancellable
     getConnectionInfo: () => PromiseLike<ConnectionInfo>
-    getCompletions: (filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number) => PromiseLike<CompletionsResponse>
+    getCompletions: (filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions?: number) => PromiseLike<CompletionsResponse>
     getSymbolAtPoint: (path: string, offset: number) => PromiseLike<SymbolInfo>
     typecheckFile: (path: string) => PromiseLike<Void>
     typecheckBuffer: (path: string, text: string) => PromiseLike<Void>
