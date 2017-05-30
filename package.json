@@ -13,7 +13,7 @@
     "test:coverage": "node node_modules/istanbul/lib/cli.js cover -e .ts  -x \"*.d.ts\" -x \"*.spec.ts\" node_modules/jasmine/bin/jasmine.js -- JASMINE_CONFIG_PATH=jasmine.json",
     "lint": "tslint --format stylish --force src/**/*.ts",
     "watch": "gulp watch",
-    "clean": "rm ./release -rf"
+    "clean": "rimraf ./release"
   },
   "repository": "https://github.com/ensime/ensime-node",
   "license": "MIT",
@@ -40,7 +40,7 @@
     "jasmine-spec-reporter": "4.1.0",
     "jasmine-ts": "0.1.2",
     "merge2": "1.0.2",
-    "rimraf": "2.5.2",
+    "rimraf": "2.6.1",
     "run-sequence": "1.2.2",
     "ts-node": "3.0.4",
     "tslint": "5.3.2",
