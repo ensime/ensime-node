@@ -264,7 +264,7 @@ describe('Server API', () => {
         events.then(() => done())
     })
 
-    it('should refactor pathch', async done => {
+    it('should refactor patch organize imports', async done => {
         const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Refactor_Patch_Org_Imports.scala'))
         const params: any = {
             typehint: 'OrganiseImportsRefactorDesc',
@@ -280,25 +280,16 @@ describe('Server API', () => {
         expect(refactoringPatchRes.typehint).toEqual('RefactorDiffEffect')
         expect(refactoringPatchRes.diff).toBeTruthy()
 
-        const diffContent = await readFile(refactoringPatchRes.diff).then(raw => raw.toString())
+        const diffLines = await readFile(refactoringPatchRes.diff).then(raw => raw.toString().split('\n'))
 
-        expect(diffContent).toEqual(`
---- /tmp/ensime-integration-test117429-32048-h3tlba.y9nwvr6bt9/src/main/scala/Test_Refactor_Patch_Org_Imports.scala	2017-05-29 10:03:58 -0300
-+++ /tmp/ensime-integration-test117429-32048-h3tlba.y9nwvr6bt9/src/main/scala/Test_Refactor_Patch_Org_Imports.scala	2017-05-29 10:03:58 -0300
-@@ -1,7 +1,7 @@
- 
--                import scala._
--                import java.lang.Integer
--                import scala.Int
-                 import java._
-+                import java.lang.Integer
- 
-+                import scala._
-+
-                 trait Temp {
-
-            .websocket closed from server
-        `)
+        expect(diffLines[4]).toEqual('-                import scala._')
+        expect(diffLines[5]).toEqual('-                import java.lang.Integer')
+        expect(diffLines[6]).toEqual('-                import scala.Int')
+        expect(diffLines[7]).toEqual('                 import java._')
+        expect(diffLines[8]).toEqual('+                import java.lang.Integer')
+        expect(diffLines[9]).toEqual(' ')
+        expect(diffLines[10]).toEqual('+                import scala._')
+        expect(diffLines[11]).toEqual('+')
 
         done()
     })

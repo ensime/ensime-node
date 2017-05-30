@@ -90,7 +90,7 @@ export const formatTypeWith = (typeNameFormatter: (x: api.Type) => string) => (t
     return recur(theType)
 }
 
-export function formatImplicitInfo(info: api.ImplicitParamInfo | api.ImplicitConversionInfo): string {
+export function formatImplicitInfo(info: api.ImplicitInfo): string {
     if (info.typehint === 'ImplicitParamInfo') {
         const implicitParamInfo = info as api.ImplicitParamInfo
         return `Implicit parameters added to call of ${implicitParamInfo.fun.localName}: (${_.map(implicitParamInfo.params, p => p.localName).join(', ')})`

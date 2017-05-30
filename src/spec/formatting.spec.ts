@@ -122,7 +122,7 @@ describe('formatType', () => {
   })
 
   it('should format implicit params', () => {
-    const input = {
+    const input: any = {
       params: [
         {
           name: 'y',
