@@ -12,6 +12,7 @@
     "test:debug": "node --debug-brk --inspect node_modules/jasmine/bin/jasmine.js JASMINE_CONFIG_PATH=jasmine.json",
     "test:coverage": "node node_modules/istanbul/lib/cli.js cover -e .ts  -x \"*.d.ts\" -x \"*.spec.ts\" node_modules/jasmine/bin/jasmine.js -- JASMINE_CONFIG_PATH=jasmine.json",
     "lint": "tslint --format stylish --force src/**/*.ts",
+    "compile": "gulp compile",
     "watch": "gulp watch",
     "clean": "rimraf ./release"
   },
@@ -20,7 +21,6 @@
   "dependencies": {
     "bluebird": "3.5.0",
     "chokidar": "1.7.0",
-    "fs": "0.0.2",
     "fs-extra": "3.0.1",
     "glob": "7.1.2",
     "lodash": "4.17.4",
@@ -29,6 +29,16 @@
     "ws": "3.0.0"
   },
   "devDependencies": {
+    "@types/bluebird": "3.5.5",
+    "@types/chokidar": "1.7.0",
+    "@types/fs-extra": "3.0.3",
+    "@types/glob": "5.0.30",
+    "@types/jasmine": "2.5.51",
+    "@types/lodash": "4.14.65",
+    "@types/loglevel": "1.4.29",
+    "@types/node": "7.0.29",
+    "@types/temp": "0.8.29",
+    "@types/ws": "3.0.0",
     "assert": "1.4.1",
     "gulp": "3.9.1",
     "gulp-sourcemaps": "2.6.0",

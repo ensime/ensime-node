@@ -97,8 +97,9 @@ function genDotEnsime(dir: string): PromiseLike<number> {
 
     pid.stdin.end()
 
-    pid.stdout.on('data', chunk => {
-        log.info('ensimeConfig', chunk.toString('utf8'))
+    pid.stdout.on('data', (chunk: Buffer | string) => {
+        const chunkStr = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : chunk.toString()
+        log.info('ensimeConfig', chunkStr)
     })
 
     return new Promise((resolve, reject) => {

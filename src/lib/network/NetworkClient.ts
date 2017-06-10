@@ -2,12 +2,12 @@ import loglevel = require('loglevel')
 import * as WebSocket from 'ws'
 
 export interface NetworkClient {
-    destroy(): any
+    destroy(): void
     send(msg: string): any
 }
 
 export class TcpClient implements NetworkClient {
-    public destroy() {
+    public destroy(): void {
         // empty
     }
 
@@ -29,9 +29,9 @@ export class WebsocketClient implements NetworkClient {
             onConnected()
         })
 
-        this.websocket.on('message', msg => {
-            log.debug(`incoming: ${msg}`)
-            onMsg(msg)
+        this.websocket.on('message', data => {
+            log.debug(`incoming: ${data}`)
+            onMsg(data.toString())
         })
 
         this.websocket.on('error', error => {
@@ -44,11 +44,12 @@ export class WebsocketClient implements NetworkClient {
 
     }
 
-    public destroy() {
+    public destroy(): void {
         this.websocket.terminate()
     }
 
-    public send(msg: string) {
+    public send(msg: string): any {
         this.websocket.send(msg)
     }
+
 }

@@ -92,13 +92,13 @@ describe('Server API', () => {
 
         const events = expectEvents(api, [sendBackgroundMessage, analyzerReadyEvent, fullTypeCheckComplete, indexerReadyEvent])
         const connectionInfoRes = await api.getConnectionInfo()
-        expect(connectionInfoRes).toEqual({ typehint: 'ConnectionInfo', implementation: { name: 'ENSIME' }, version: '1.9.1' })
+        expect(connectionInfoRes).toEqual({ typehint: 'ConnectionInfo', implementation: { name: 'ENSIME' }, version: '1.9.1' } as any)
         await events.then(() => done())
     })
 
     it('should get type at point', async done => {
         const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Types.scala'))
-        const expectedTypeAtPointRes = {
+        const expectedTypeAtPointRes: any = {
             name: 'User',
             fullName: 'User',
             pos: {
@@ -121,7 +121,7 @@ describe('Server API', () => {
 
     it('should get import suggestions', async done => {
         const targetFile = instance.pathOf(path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala'))
-        const expectedimportSuggestionsRes = {
+        const expectedimportSuggestionsRes: any = {
             typehint: 'ImportSuggestions',
             symLists: [[{
                 name: 'scala.util.Success',
@@ -740,7 +740,7 @@ describe('Server API', () => {
               isInfix: false
             }
           ]
-        })
+        } as any)
 
         done()
     })
