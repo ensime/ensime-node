@@ -23,6 +23,8 @@ build:
 matrix:
   NODE_VERSION:
     - 6.0
+    - 7.0
+    - 8.0
 
 cache:
   mount:
