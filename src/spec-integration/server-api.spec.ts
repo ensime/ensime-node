@@ -33,15 +33,15 @@ loglevel.setLevel('trace')
 
 const voidResponse: Void = { typehint: 'VoidResponse' }
 
+const CUSTOM_TIMEOUT_INTERVAL = 300000
+
 describe('Server API', () => {
     let instance: EnsimeInstance<any>
     let api: Api
-    let originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 200000
+    const originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = CUSTOM_TIMEOUT_INTERVAL
 
     beforeAll(done => {
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = 2000000
-        originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
         setupProject().then(_instance => {
             instance = _instance
             api = _instance.api
@@ -71,13 +71,13 @@ describe('Server API', () => {
                       def j(): Integer
                     }
                 `
-            }).then(() => done())
+            }).then(() => done()).catch(done.fail)
         })
     })
 
     afterAll(done => {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-        instance.destroy().then(() => done())
+        instance.destroy().then(() => done(), err => done.fail(err))
     })
 
     it('should get connection info', async done => {

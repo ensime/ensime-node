@@ -1,4 +1,4 @@
-import {ensureExists} from '../file-utils'
+import {ensureExistsDir} from '../file-utils'
 import {DotEnsime} from '../types'
 import path = require('path')
 import * as Promise from 'bluebird'
@@ -55,5 +55,5 @@ export function startServerFromClasspath(classpath: string[], dotEnsime: DotEnsi
   const args = javaArgsOf(classpath, dotEnsime.dotEnsimePath, serverFlags)
   log.debug(`Starting Ensime server with ${cmd} ${args.join(' ')}`)
 
-  return ensureExists(dotEnsime.cacheDir).then(() => execEnsime(dotEnsime, cmd, args))
+  return ensureExistsDir(dotEnsime.cacheDir).then(() => execEnsime(dotEnsime, cmd, args))
 }

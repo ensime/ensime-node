@@ -1,5 +1,5 @@
 import {ChildProcess} from 'child_process'
-import {ensureExists} from './file-utils'
+import {ensureExistsDir} from './file-utils'
 import {createConnection, ServerConnection} from './server-api/server-connection'
 import fs = require('fs')
 import path = require('path')
@@ -34,7 +34,7 @@ export default function(serverStarter: ServerStarter) {
 
         log.debug('trying to start client')
 
-        return ensureExists(parsedDotEnsime.cacheDir).then(() => {
+        return ensureExistsDir(parsedDotEnsime.cacheDir).then(() => {
             const httpPortFilePath = parsedDotEnsime.cacheDir + path.sep + 'http'
 
             let serverProcessRef: PromiseLike<ChildProcess> = Promise.resolve(undefined)
