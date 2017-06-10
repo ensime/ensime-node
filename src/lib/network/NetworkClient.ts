@@ -22,7 +22,7 @@ export class WebsocketClient implements NetworkClient {
     constructor(httpPort: string, onConnected: () => any, onMsg: (msg: string) => any) {
         const log = loglevel.getLogger('ensime-client')
 
-        this.websocket = new WebSocket('ws://localhost:' + httpPort + '/websocket', ['jerky'])
+        this.websocket = new WebSocket(`ws://localhost:${httpPort}/websocket`, ['jerky'])
 
         this.websocket.on('open', () => {
             log.debug('connecting websocket…')
