@@ -1,4 +1,3 @@
-import * as Promise from 'bluebird'
 import * as fs from 'fs-extra'
 import * as loglevel from 'loglevel'
 

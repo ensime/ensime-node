@@ -6,42 +6,40 @@ export interface NetworkClient {
     send(msg: string): any
 }
 
-export class TcpClient implements NetworkClient {
-    public destroy(): void {
-        // empty
-    }
-
-    public send(msg: string): any {
-         // empty
-    }
-}
-
 export class WebsocketClient implements NetworkClient {
+
+    private static log = loglevel.getLogger('ensime-client')
+
+    public static new(httpPort: string, onNewMessage: (msg: string) => any): Promise<WebsocketClient> {
+        const websocket = new WebSocket(`ws://localhost:${httpPort}/websocket`, ['jerky'])
+
+        return new Promise((resolve, reject) => {
+            websocket.once('open', () => {
+                WebsocketClient.log.info('Connected to Ensime server.')
+                resolve(new WebsocketClient(websocket, onNewMessage))
+            })
+
+            websocket.once('error', error => reject(error))
+        })
+    }
+
     private websocket: WebSocket
 
-    constructor(httpPort: string, onConnected: () => any, onMsg: (msg: string) => any) {
-        const log = loglevel.getLogger('ensime-client')
-
-        this.websocket = new WebSocket(`ws://localhost:${httpPort}/websocket`, ['jerky'])
-
-        this.websocket.on('open', () => {
-            log.debug('connecting websocket…')
-            onConnected()
-        })
+    private constructor(ws: WebSocket, onNewMessage: (msg: string) => any) {
+        this.websocket = ws
 
         this.websocket.on('message', data => {
-            log.debug(`incoming: ${data}`)
-            onMsg(data.toString())
+            WebsocketClient.log.debug(`incoming: ${data}`)
+            onNewMessage(data.toString())
         })
 
         this.websocket.on('error', error => {
-            log.error(error)
+            WebsocketClient.log.error(error)
         })
 
         this.websocket.on('close', () => {
-            log.debug('websocket closed from server')
+            WebsocketClient.log.debug('websocket closed from server')
         })
-
     }
 
     public destroy(): void {
@@ -51,5 +49,4 @@ export class WebsocketClient implements NetworkClient {
     public send(msg: string): any {
         this.websocket.send(msg)
     }
-
 }

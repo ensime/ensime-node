@@ -1,4 +1,4 @@
-/* tslint:disable max-line-length */
+/* tslint:disable max-line-length no-console */
 import * as path from 'path'
 import * as temp from 'temp'
 
@@ -26,7 +26,7 @@ import {
     TypeInfo,
     Void
 } from '../lib/server-api/server-protocol'
-import {expectEvents, setupProject} from './utils'
+import {expectEvents, setupProject, stripMargin} from './utils'
 
 const log = loglevel.getLogger('server-api')
 loglevel.setDefaultLevel(LogLevel.INFO)
@@ -37,6 +37,15 @@ const voidResponse: Void = { typehint: 'VoidResponse' }
 const CUSTOM_TIMEOUT_INTERVAL = 60000
 const MAX_SAFE_TIMEOUT = Math.pow(2, 31) - 1
 
+process.on('unhandledRejection', error => {
+  // Prints "unhandledRejection woops!"
+  const util = require('util')
+
+  console.log(util.inspect(error))
+
+  console.error('unhandledRejection', error)
+})
+
 describe('Server API', () => {
     let instance: EnsimeInstance<any>
     let api: Api
@@ -44,38 +53,36 @@ describe('Server API', () => {
     const originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = CUSTOM_TIMEOUT_INTERVAL
 
-    beforeAll(done => {
-        setupProject().then(_instance => {
-            instance = _instance
-            api = _instance.api
-
-            return _instance.addFiles({
-                [path.join('src', 'main', 'scala', 'Test_Types.scala')]: 'case class User(name: String, age: Int)',
-                [path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala')]: 'Success("Test")',
-                [path.join('src', 'main', 'scala', 'Test_Typecheck_File.scala')]: `
-                    import scala.utilss._
-
-                    object Main {
-                      def main(args: Array[String]) {
-                       val userName: String = 2
-                       Success(userName)
-                     }
-                    }
-                `,
-                [path.join('src', 'main', 'scala', 'Test_Completitions.scala')]: 'object Test_Completitions { scala.concurrent.Future. }',
-                [path.join('src', 'main', 'scala', 'Test_Refactor_Patch_Org_Imports.scala')]: `
-                    import scala._
-                    import java.lang.Integer
-                    import scala.Int
-                    import java._
-
-                    trait Temp {
-                      def i(): Int
-                      def j(): Integer
-                    }
-                `
-            }).then(() => done()).catch(done.fail)
+    beforeAll(async done => {
+        instance = await setupProject()
+        api = instance.api
+        await instance.addFiles({
+            [path.join('src', 'main', 'scala', 'Test_Types.scala')]: 'case class User(name: String, age: Int)',
+            [path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala')]: 'Success("Test")',
+            [path.join('src', 'main', 'scala', 'Test_Typecheck_File.scala')]: stripMargin`
+              |  import scala.utilss._
+              |
+              |  object Main {
+              |    def main(args: Array[String]) {
+              |     val userName: String = 2
+              |     Success(userName)
+              |    }
+              |  }
+            `,
+            [path.join('src', 'main', 'scala', 'Test_Completitions.scala')]: 'object Test_Completitions { scala.concurrent.Future. }',
+            [path.join('src', 'main', 'scala', 'Test_Refactor_Patch_Org_Imports.scala')]: stripMargin`
+              | import scala._
+              | import java.lang.Integer
+              | import scala.Int
+              | import java._
+              |
+              | trait Temp {
+              |   def i(): Int
+              |   def j(): Integer
+              | }
+            `
         })
+        done()
     }, MAX_SAFE_TIMEOUT)
 
     afterAll(done => {
@@ -160,10 +167,10 @@ describe('Server API', () => {
                 typehint: 'NewScalaNotesEvent',
                 isFull: false,
                 notes: [{
-                    beg: 130,
+                    beg: 76,
                     line: 5,
-                    col: 53,
-                    end: 130,
+                    col: 35,
+                    end: 76,
                     file: targetFile,
                     msg: 'Procedure syntax is deprecated. Convert procedure `main` to method by adding `: Unit =`.',
                     severity: {
@@ -176,10 +183,10 @@ describe('Server API', () => {
                 typehint: 'NewScalaNotesEvent',
                 isFull: false,
                 notes: [{
-                    beg: 28,
+                    beg: 10,
                     line: 2,
-                    col: 34,
-                    end: 40,
+                    col: 16,
+                    end: 22,
                     file: targetFile,
                     msg: 'object utilss is not a member of package scala',
                     severity: {
@@ -191,10 +198,10 @@ describe('Server API', () => {
                 typehint: 'NewScalaNotesEvent',
                 isFull: false,
                 notes: [{
-                    beg: 178,
+                    beg: 106,
                     line: 6,
-                    col: 47,
-                    end: 179,
+                    col: 29,
+                    end: 107,
                     file: targetFile,
                     msg: 'type mismatch;\n found   : Int(2)\n required: String',
                     severity: {
@@ -206,10 +213,10 @@ describe('Server API', () => {
                 typehint: 'NewScalaNotesEvent',
                 isFull: false,
                 notes: [{
-                    beg: 203,
+                    beg: 113,
                     line: 7,
-                    col: 24,
-                    end: 210,
+                    col: 6,
+                    end: 120,
                     file: targetFile,
                     msg: 'not found: value Success',
                     severity: {
@@ -221,10 +228,10 @@ describe('Server API', () => {
                 typehint: 'NewScalaNotesEvent',
                 isFull: false,
                 notes: [{
-                    beg: 21,
+                    beg: 3,
                     line: 2,
-                    col: 41,
-                    end: 42,
+                    col: 23,
+                    end: 24,
                     file: targetFile,
                     msg: 'Unused import',
                     severity: {
@@ -247,7 +254,8 @@ describe('Server API', () => {
 
             const typecheckFileRes = await api.typecheckFile(targetFile)
             expect(typecheckFileRes).toEqual(voidResponse)
-            await events.then(() => done())
+            await events
+            done()
         })().catch(done.fail)
     })
 
@@ -276,7 +284,8 @@ describe('Server API', () => {
                 }
             `)
             expect(typecheckFileRes).toEqual(voidResponse)
-            await events.then(() => done())
+            await events
+            done()
         })().catch(done.fail)
     })
 
@@ -766,10 +775,10 @@ describe('Server API', () => {
                 typehint: 'NewScalaNotesEvent',
                 isFull: false,
                 notes: [{
-                    beg: 138,
+                    beg: 62,
                     line: 5,
-                    col: 33,
-                    end: 151,
+                    col: 14,
+                    end: 75,
                     file: targetFile,
                     msg: 'Unused import',
                     severity: {
@@ -799,18 +808,20 @@ describe('Server API', () => {
             expect(refactoringPatchRes.typehint).toEqual('RefactorDiffEffect')
             expect(refactoringPatchRes.diff).toBeTruthy()
 
-            const diffLines = await readFile(refactoringPatchRes.diff).then(raw => raw.toString().split('\n'))
+            const raw = await readFile(refactoringPatchRes.diff)
+            const diffLines = raw.toString().split('\n')
 
-            expect(diffLines[4]).toEqual('-                    import scala._')
-            expect(diffLines[5]).toEqual('-                    import java.lang.Integer')
-            expect(diffLines[6]).toEqual('-                    import scala.Int')
-            expect(diffLines[7]).toEqual('                     import java._')
-            expect(diffLines[8]).toEqual('+                    import java.lang.Integer')
+            expect(diffLines[4]).toEqual('- import scala._')
+            expect(diffLines[5]).toEqual('- import java.lang.Integer')
+            expect(diffLines[6]).toEqual('- import scala.Int')
+            expect(diffLines[7]).toEqual('  import java._')
+            expect(diffLines[8]).toEqual('+ import java.lang.Integer')
             expect(diffLines[9]).toEqual(' ')
-            expect(diffLines[10]).toEqual('+                    import scala._')
+            expect(diffLines[10]).toEqual('+ import scala._')
             expect(diffLines[11]).toEqual('+')
 
-            await events.then(() => done())
+            await events
+            done()
         })().catch(done.fail)
     })
 })

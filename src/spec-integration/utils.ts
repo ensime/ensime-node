@@ -47,10 +47,8 @@ export async function setupProject(): Promise<EnsimeInstance<any>> {
 
     await fs.pathExists(dotEnsimePath)
 
-    const connection: ServerConnection = await startEnsime(dotEnsimePath).then(c => {
-        log.debug('got a connected client', c)
-        return c
-    })
+    const connection: ServerConnection = await startEnsime(dotEnsimePath)
+    log.debug('Got a connected client', connection)
 
     return await makeInstanceFromPath(dotEnsimePath, connection, new CleanUpFakeUI(projectPath))
 }
@@ -58,20 +56,20 @@ export async function setupProject(): Promise<EnsimeInstance<any>> {
 /**
  * Generates project structure and build.sbt
  */
-async function generateProject(dir: string): Promise<any> {
+async function generateProject(dir: string, scalaVersion: string = '2.11.11', ensimeServerVersion: string = '2.0.0-M1'): Promise<any> {
     await fs.ensureDir(path.join(dir, 'project'))
     await fs.ensureDir(path.join(dir, 'src', 'main', 'scala'))
 
     const buildDotSbt = `
         import org.ensime.EnsimeKeys._
-        ensimeServerVersion in ThisBuild := "2.0.0-M1"
-        ensimeProjectServerVersion in ThisBuild := "2.0.0-M1"
+        ensimeServerVersion in ThisBuild := "${ensimeServerVersion}"
+        ensimeProjectServerVersion in ThisBuild := "${ensimeServerVersion}"
 
 
         lazy val commonSettings = Seq(
             organization := "org.ensime",
             version := "0.1-SNAPSHOT",
-            scalaVersion := "2.11.8"
+            scalaVersion := "${scalaVersion}"
         )
 
         lazy val root = (project in file(".")).
@@ -99,15 +97,20 @@ function genDotEnsime(dir: string): PromiseLike<number> {
 
     pid.stdout.on('data', (chunk: Buffer | string) => {
         const chunkStr = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : chunk.toString()
-        log.info('ensimeConfig', chunkStr)
+        log.debug('sbt ensimeConfig: ', chunkStr)
+    })
+
+    pid.stderr.on('data', (chunk: Buffer | string) => {
+        const chunkStr = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : chunk.toString()
+        log.error('sbt ensimeConfig: ', chunkStr)
     })
 
     return new Promise((resolve, reject) => {
-        pid.on('close', (exitCode: number) => {
+        pid.once('close', (exitCode: number) => {
             if (exitCode === 0) {
                 resolve(exitCode)
             } else {
-                reject(exitCode)
+                reject(new Error(`sbt ensimeConfig fail with ${exitCode}`))
             }
         })
     })
@@ -138,4 +141,12 @@ export function expectEvents(api: Api, events: [Event]): PromiseLike<{}>   {
             }
         })
     })
+}
+
+export function stripMargin(template, ...expressions) {
+  const result = template.reduce((accumulator, part, i) => {
+    return accumulator + expressions[i - 1] + part
+  })
+
+  return result.replace(/\r?(\n)\s*\|/g, '$1')
 }

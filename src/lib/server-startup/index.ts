@@ -14,7 +14,7 @@ export function startServerFromDotEnsimeCP(
     dotEnsime: DotEnsime,
     ensimeServerFlags = ''
 ): PromiseLike<ChildProcess> {
-    log.debug('starting server from classpath')
+    log.info('Starting server from classpath')
     return startServerFromClasspath(dotEnsime.serverJars.concat(dotEnsime.compilerJars), dotEnsime, ensimeServerFlags)
 }
 
@@ -23,6 +23,6 @@ export function startServerFromAssemblyJar(
     dotEnsime: DotEnsime,
     ensimeServerFlags = ''): PromiseLike<ChildProcess> {
     const cp = [assemblyJar].concat(dotEnsime.compilerJars)
-    log.debug('starting server from assembly jar')
+    log.info('Starting server from assembly jar')
     return startServerFromClasspath(cp, dotEnsime, ensimeServerFlags)
 }

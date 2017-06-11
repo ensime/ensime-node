@@ -5,7 +5,6 @@ import fs = require('fs')
 import path = require('path')
 import loglevel = require('loglevel')
 import chokidar = require('chokidar')
-import * as Promise from 'bluebird'
 import {DotEnsime, ServerStarter} from './types'
 
 const log = loglevel.getLogger('ensime.startup')

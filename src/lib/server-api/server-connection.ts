@@ -19,15 +19,15 @@ export type Cancellable = () => void
  */
 export class ServerConnection {
     public readonly httpPort: string
-    private netClient: WebsocketClient
+    private client: WebsocketClient
     private serverProcess?: ChildProcess
     private callbackMap: CallbackMap
     private serverEvents: EventEmitter
     private ensimeMessageCounter = 1
 
-    constructor(httpPort: string, netClient: WebsocketClient, callbackMap: CallbackMap, serverEvents: EventEmitter, serverProcess?: ChildProcess) {
+    constructor(httpPort: string, client: WebsocketClient, callbackMap: CallbackMap, serverEvents: EventEmitter, serverProcess?: ChildProcess) {
         this.httpPort = httpPort
-        this.netClient = netClient
+        this.client = client
         this.callbackMap = callbackMap
         this.serverEvents = serverEvents
         this.serverProcess = serverProcess
@@ -56,12 +56,12 @@ export class ServerConnection {
         const wireMsg = `{"req": ${JSON.stringify(msg)}, "callId": ${this.ensimeMessageCounter}}`
         this.callbackMap.set(this.ensimeMessageCounter++, p)
         log.debug('outgoing: ' + wireMsg)
-        this.netClient.send(wireMsg)
+        this.client.send(wireMsg)
         return p.promise
     }
 
     public destroy(): PromiseLike<number> {
-        this.netClient.destroy()
+        this.client.destroy()
         if (this.serverProcess) {
             return this.killServer()
         }
@@ -79,8 +79,6 @@ export class ServerConnection {
 }
 
 export function createConnection(httpPort: string, serverProcess?: ChildProcess): PromiseLike<ServerConnection> {
-    const deferredConnection = Promise.defer<ServerConnection>()
-
     const callbackMap: CallbackMap = new Map()
     const serverEvents: EventEmitter = new EventEmitter()
 
@@ -107,12 +105,5 @@ export function createConnection(httpPort: string, serverProcess?: ChildProcess)
         }
     }
 
-    function onConnect() {
-        log.debug('creating client api')
-        deferredConnection.resolve(new ServerConnection(httpPort, netClient, callbackMap, serverEvents, serverProcess))
-    }
-
-    const netClient = new WebsocketClient(httpPort, onConnect, handleIncoming)
-
-    return deferredConnection.promise
+    return WebsocketClient.new(httpPort, handleIncoming).then(ws => new ServerConnection(httpPort, ws, callbackMap, serverEvents, serverProcess))
 }
