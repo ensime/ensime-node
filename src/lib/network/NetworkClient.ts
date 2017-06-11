@@ -11,7 +11,9 @@ export class WebsocketClient implements NetworkClient {
     private static log = loglevel.getLogger('ensime-client')
 
     public static new(httpPort: string, onNewMessage: (msg: string) => any): Promise<WebsocketClient> {
-        const websocket = new WebSocket(`ws://localhost:${httpPort}/websocket`, ['jerky'])
+        const uri = `ws://localhost:${httpPort}/websocket`
+        WebsocketClient.log.info(`Connecting to ${uri}`)
+        const websocket = new WebSocket(uri, ['jerky'])
 
         return new Promise((resolve, reject) => {
             websocket.once('open', () => {
@@ -19,7 +21,10 @@ export class WebsocketClient implements NetworkClient {
                 resolve(new WebsocketClient(websocket, onNewMessage))
             })
 
-            websocket.once('error', error => reject(error))
+            websocket.once('error', error => {
+                websocket.once('close', () => WebsocketClient.log.error('Unexpected close from Ensime server.'))
+                reject(error)
+            })
         })
     }
 
