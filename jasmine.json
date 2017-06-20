@@ -4,6 +4,7 @@
   "stopSpecOnExpectationFailure": true,
   "random": false,
   "helpers": [
-       "../../node_modules/ts-node/register.js"
+       "../../node_modules/ts-node/register.js",
+       "../../src/spec/helper.js"
    ]
 }

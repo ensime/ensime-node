@@ -2,53 +2,56 @@ import loglevel = require('loglevel')
 import * as WebSocket from 'ws'
 
 export interface NetworkClient {
-    destroy(): any
+    destroy(): void
     send(msg: string): any
 }
 
-export class TcpClient implements NetworkClient {
-    public destroy() {
-        // empty
-    }
-
-    public send(msg: string): any {
-         // empty
-    }
-}
-
 export class WebsocketClient implements NetworkClient {
+
+    private static log = loglevel.getLogger('ensime-client')
+
+    public static new(httpPort: string, onNewMessage: (msg: string) => any): Promise<WebsocketClient> {
+        const uri = `ws://localhost:${httpPort}/websocket`
+        WebsocketClient.log.info(`Connecting to ${uri}`)
+        const websocket = new WebSocket(uri, ['jerky'])
+
+        return new Promise((resolve, reject) => {
+            websocket.once('open', () => {
+                WebsocketClient.log.info('Connected to Ensime server.')
+                resolve(new WebsocketClient(websocket, onNewMessage))
+            })
+
+            websocket.once('error', error => {
+                websocket.once('close', () => WebsocketClient.log.error('Unexpected close from Ensime server.'))
+                reject(error)
+            })
+        })
+    }
+
     private websocket: WebSocket
 
-    constructor(httpPort: string, onConnected: () => any, onMsg: (msg: string) => any) {
-        const log = loglevel.getLogger('ensime-client')
+    private constructor(ws: WebSocket, onNewMessage: (msg: string) => any) {
+        this.websocket = ws
 
-        this.websocket = new WebSocket('ws://localhost:' + httpPort + '/websocket', ['jerky'])
-
-        this.websocket.on('open', () => {
-            log.debug('connecting websocket…')
-            onConnected()
-        })
-
-        this.websocket.on('message', msg => {
-            log.debug(`incoming: ${msg}`)
-            onMsg(msg)
+        this.websocket.on('message', data => {
+            WebsocketClient.log.debug(`incoming: ${data}`)
+            onNewMessage(data.toString())
         })
 
         this.websocket.on('error', error => {
-            log.error(error)
+            WebsocketClient.log.error(error)
         })
 
         this.websocket.on('close', () => {
-            log.debug('websocket closed from server')
+            WebsocketClient.log.debug('websocket closed from server')
         })
-
     }
 
-    public destroy() {
+    public destroy(): void {
         this.websocket.terminate()
     }
 
-    public send(msg: string) {
+    public send(msg: string): any {
         this.websocket.send(msg)
     }
 }

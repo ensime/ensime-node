@@ -1,15 +1,18 @@
 import * as Promise from 'bluebird'
 import {OffsetRange, SourceFileInfo} from './server-commons'
-import {EventHandler, ServerConnection} from './server-connection'
+import {Cancellable, EventHandler, ServerConnection} from './server-connection'
 import {
     BreakpointList,
     CompletionsResponse,
     ConnectionInfo,
     DebugVmStatus,
     False,
+    ImplicitInfos,
     ImportSuggestions,
     Point,
-    RefactoringDesc,
+    RefactorDesc,
+    RefactorDiffEffect,
+    RefactorFailure,
     SymbolInfo,
     True,
     Typehinted,
@@ -104,15 +107,15 @@ function debuggerApiOf(client: ServerConnection): DebuggerApi {
 export function apiOf(client: ServerConnection): Api {
 
     return {
-        onEvents(listener: EventHandler, once?: boolean) {
-            client.onEvents(listener, once)
+        onEvents(listener: EventHandler, once?: boolean): Cancellable {
+            return client.onEvents(listener, once)
         },
 
-        getConnectionInfo() {
+        getConnectionInfo(): PromiseLike<ConnectionInfo> {
             return client.post<ConnectionInfo>({ typehint: 'ConnectionInfoReq' })
         },
 
-        getCompletions(filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number): PromiseLike<CompletionsResponse> {
+        getCompletions(filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions: number = 10): PromiseLike<CompletionsResponse> {
             return withTempFile(filePath, bufferText).then(tempFilePath => {
                 const fileInfo: SourceFileInfo = {
                     contentsIn: tempFilePath,
@@ -130,7 +133,7 @@ export function apiOf(client: ServerConnection): Api {
             })
         },
 
-        getSymbolAtPoint(path: string, offset): PromiseLike<SymbolInfo> {
+        getSymbolAtPoint(path: string, offset: number): PromiseLike<SymbolInfo> {
             const req = {
                 file: path,
                 point: offset,
@@ -144,7 +147,7 @@ export function apiOf(client: ServerConnection): Api {
             })
         },
 
-        typecheckBuffer(filePath: string, text: string) {
+        typecheckBuffer(filePath: string, text: string): PromiseLike<Void> {
             return withTempFile(filePath, text).then(tempFilePath => {
                 const fileInfo: SourceFileInfo = {
                     contentsIn: tempFilePath,
@@ -158,7 +161,7 @@ export function apiOf(client: ServerConnection): Api {
             })
         },
 
-        typecheckFile(filePath: string) {
+        typecheckFile(filePath: string): PromiseLike<Void> {
             const fileInfo: SourceFileInfo = {
                 file: filePath,
             }
@@ -177,11 +180,8 @@ export function apiOf(client: ServerConnection): Api {
             return client.post(msg)
         },
 
-        getImplicitInfo(path: string, startO: number, endO: number) {
-            const range: OffsetRange = {
-                from: startO,
-                to: endO,
-            }
+        getImplicitInfo(path: string, from: number, to: number): PromiseLike<ImplicitInfos> {
+            const range: OffsetRange = { from, to }
             const msg = {
                 file: path,
                 range,
@@ -190,19 +190,19 @@ export function apiOf(client: ServerConnection): Api {
             return client.post(msg)
         },
 
-        typecheckAll() {
+        typecheckAll(): PromiseLike<Void> {
             return client.post({ typehint: 'TypecheckAllReq' })
         },
 
-        unloadAll() {
+        unloadAll(): PromiseLike<Void> {
             return client.post({ typehint: 'UnloadAllReq' })
         },
 
-        getRefactoringPatch(procId: number, refactoring: RefactoringDesc) {
+        getRefactoringPatch<R extends RefactorDesc>(procId: number, params: R): PromiseLike<RefactorDiffEffect | RefactorFailure> {
             const req = {
                 interactive: false,
                 procId,
-                params: refactoring,
+                params,
                 typehint: 'RefactorReq',
             }
             return client.post(req)
@@ -295,17 +295,17 @@ export interface DebuggerApi {
 }
 
 export interface Api {
-    onEvents: (listener: EventHandler, once?: boolean) => void
+    onEvents: (listener: EventHandler, once?: boolean) => Cancellable
     getConnectionInfo: () => PromiseLike<ConnectionInfo>
-    getCompletions: (filePath: string, bufferText: any, offset: any, noOfAutocompleteSuggestions: any) => PromiseLike<CompletionsResponse>
-    getSymbolAtPoint: (path: string, offset: any) => PromiseLike<SymbolInfo>
-    typecheckFile: (path: string) => PromiseLike<Typehinted>
-    typecheckBuffer: (path: string, text: string) => void
+    getCompletions: (filePath: string, bufferText: string, offset: number, noOfAutocompleteSuggestions?: number) => PromiseLike<CompletionsResponse>
+    getSymbolAtPoint: (path: string, offset: number) => PromiseLike<SymbolInfo>
+    typecheckFile: (path: string) => PromiseLike<Void>
+    typecheckBuffer: (path: string, text: string) => PromiseLike<Void>
     symbolByName: (qualifiedName: any) => PromiseLike<Typehinted>
-    getImplicitInfo: (path: string, startO: number, endO: number) => PromiseLike<Typehinted>
-    getRefactoringPatch: (procId: number, refactoring: RefactoringDesc) => PromiseLike<Typehinted>
-    typecheckAll(): void
-    unloadAll(): void
+    getImplicitInfo: (path: string, from: number, to: number) => PromiseLike<ImplicitInfos>
+    getRefactoringPatch<R extends RefactorDesc>(procId: number, params: R): PromiseLike<RefactorDiffEffect | RefactorFailure>
+    typecheckAll(): PromiseLike<Void>
+    unloadAll(): PromiseLike<Void>
     searchPublicSymbols(keywords: string[], maxSymbols: number): PromiseLike<Typehinted>
     getDocUriAtPoint(file: string, point: Point): PromiseLike<Typehinted>
     getImportSuggestions(file: string, characterIndex: number, symbol: string, maxResults?: number): PromiseLike<ImportSuggestions>

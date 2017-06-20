@@ -32,10 +32,14 @@ export interface ClearAllScalaNotes extends Event { }
 /** The presentation compiler has invalidated all existing notes.  */
 export interface ClearAllJavaNotes extends Event { }
 
+export interface NoteSeverity extends Typehinted {
+    typehint: 'NoteError' | 'NoteWarn' | 'NoteInfo'
+}
+
 export interface Note {
     file: string,
     msg: string,
-    severity: string,
+    severity: NoteSeverity,
     beg: number,
     end: number,
     line: number,
@@ -57,23 +61,30 @@ export interface NewJavaNotes extends Event {
 export interface True extends Typehinted {}
 export interface False extends Typehinted {}
 
-export interface Param {
-    localName: string
-}
-
 export interface ConnectionInfo extends Typehinted {
     pid?: number
     implementation: [{name: string}]
     version: string
 }
 
-export interface ImplicitParamInfo extends Typehinted {
-    fun: Param // Not really
-    params: [Param]
+export interface ImplicitInfo extends Typehinted { }
+
+export interface ImplicitParamInfo extends ImplicitInfo {
+    start: number
+    end: number
+    fun: SymbolInfo // Not really
+    params: [SymbolInfo]
+    funIsImplicit: boolean
 }
 
-export interface ImplicitConversionInfo extends Typehinted {
-    fun: Param
+export interface ImplicitConversionInfo extends ImplicitInfo {
+    start: number
+    end: number
+    fun: SymbolInfo
+}
+
+export interface ImplicitInfos extends Typehinted {
+    infos: [ImplicitInfo]
 }
 
 export interface SymbolInfo extends Typehinted {
@@ -81,7 +92,6 @@ export interface SymbolInfo extends Typehinted {
     localName: string
     declPos?: SourcePosition
     type: TypeInfo
-    isCallable: boolean
 }
 
 export interface CompletionsResponse extends Typehinted {
@@ -106,7 +116,7 @@ export interface EntityInfo extends Typehinted {
     members: [EntityInfo]
 }
 
-export interface Void extends EntityInfo { }
+export interface Void extends Typehinted { }
 
 export interface SourcePosition extends Typehinted { }
 export interface EmptySourcePosition extends SourcePosition { }
@@ -157,8 +167,106 @@ export interface Type extends Typehinted {
     declAs: any
 }
 
-export interface RefactoringDesc {
-    typehint: string
+export interface RefactorType extends Typehinted { }
+
+export interface Rename extends RefactorType {
+    typehint: 'Rename'
+}
+
+export interface ExtractMethod extends RefactorType {
+    typehint: 'ExtractMethod'
+}
+
+export interface ExtractLocal extends RefactorType {
+    typehint: 'ExtractLocal'
+}
+
+export interface InlineLocal extends RefactorType {
+    typehint: 'InlineLocal'
+}
+
+export interface OrganizeImports extends RefactorType {
+    typehint: 'OrganizeImports'
+}
+
+export interface AddImport extends RefactorType {
+    typehint: 'AddImport'
+}
+
+export interface ExpandMatchCases extends RefactorType {
+    typehint: 'ExpandMatchCases'
+}
+
+export interface RefactorFailure extends Typehinted {
+  procedureId: number
+  reason: string
+  status: string
+}
+
+export interface RefactorDiffEffect extends Typehinted {
+  procedureId: number,
+  refactorType: RefactorType,
+  diff: string
+}
+
+export interface RefactorDesc extends Typehinted {
+  refactorType: RefactorType
+}
+
+export interface InlineLocalRefactorDesc extends RefactorDesc {
+    typehint: 'InlineLocalRefactorDesc'
+    refactorType: InlineLocal
+    file: string
+    start: number
+    end: number
+}
+
+export interface RenameRefactorDesc extends RefactorDesc {
+    typehint: 'RenameRefactorDesc'
+    refactorType: Rename
+    newName: string
+    file: string
+    start: number
+    end: number
+}
+
+export interface ExtractMethodRefactorDesc extends RefactorDesc {
+    typehint: 'ExtractMethodRefactorDesc'
+    refactorType: ExtractMethod
+    methodName: string
+    file: string
+    start: number
+    end: number
+}
+
+export interface ExtractLocalRefactorDesc extends RefactorDesc {
+  typehint: 'ExtractLocalRefactorDesc'
+  refactorType: ExtractLocal
+  name: string
+  file: string
+  start: number
+  end: number
+}
+
+export interface OrganiseImportsRefactorDesc extends RefactorDesc {
+    typehint: 'OrganiseImportsRefactorDesc'
+    refactorType: OrganizeImports
+    file: string
+}
+
+export interface AddImportRefactorDesc extends RefactorDesc {
+    typehint: 'AddImportRefactorDesc'
+    refactorType: AddImport
+    qualifiedName: string
+    file: string
+}
+
+export interface ExpandMatchCasesDesc extends RefactorDesc {
+    typehint: 'ExpandMatchCasesDesc'
+    refactorType: ExpandMatchCases
+    file: string
+    start: number
+    end: number
 }
 
 export interface Point {
