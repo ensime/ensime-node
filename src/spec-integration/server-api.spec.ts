@@ -1,35 +1,25 @@
 /* tslint:disable max-line-length no-console */
 import * as path from 'path'
-import * as temp from 'temp'
 
 import { readFile } from '../lib/file-utils'
 
 import loglevel = require('loglevel')
 import {EnsimeInstance} from '../lib/instance'
 import {Api} from '../lib/server-api/server-api'
-import {ServerConnection} from '../lib/server-api/server-connection'
 import {
     AnalyzerReady,
     ClearAllScalaNotes,
     CompletionsResponse,
-    Event,
     FullTypeCheckComplete,
-    ImplicitInfo,
-    ImplicitInfos,
-    ImportSuggestions,
     IndexerReady,
     NewScalaNotes,
-    Note,
-    OrganiseImportsRefactorDesc,
-    RefactorDiffEffect,
     SendBackgroundMessage,
-    TypeInfo,
     Void
 } from '../lib/server-api/server-protocol'
 import {expectEvents, setupProject, stripMargin} from './utils'
 
 const log = loglevel.getLogger('server-api')
-loglevel.setDefaultLevel(LogLevel.INFO)
+loglevel.setDefaultLevel("info")
 loglevel.setLevel('trace')
 
 const voidResponse: Void = { typehint: 'VoidResponse' }

@@ -38,7 +38,8 @@ function getTempPath(filePath: string): string {
 
 async function withTempFile(filePath: string, bufferText: string): Promise<string> {
     const tempFilePath = getTempPath(filePath)
-    return outputFileAsync(tempFilePath, bufferText)
+    await outputFileAsync(tempFilePath, bufferText)
+    return tempFilePath;
 }
 
 function debuggerApiOf(client: ServerConnection): DebuggerApi {
