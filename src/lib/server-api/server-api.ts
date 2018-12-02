@@ -1,4 +1,6 @@
-import * as Promise from 'bluebird'
+import fs = require('fs-extra')
+import * as path from 'path'
+import * as temp from 'temp'
 import {OffsetRange, SourceFileInfo} from './server-commons'
 import {Cancellable, EventHandler, ServerConnection} from './server-connection'
 import {
@@ -19,36 +21,25 @@ import {
     TypeInfo,
     Void
 } from './server-protocol'
-import fs = require('fs-extra')
-import * as path from 'path'
-import * as temp from 'temp'
 
 temp.track()
 const tempDir = temp.mkdirSync('ensime-temp-files')
-const getTempDir = () => tempDir
 
-const getTempPath = file => {
-    if (process.platform === 'win32') {
-        return path.join(getTempDir(), file.replace(':', ''))
-    }
-    return path.join(getTempDir(), file)
+function getTempDir(): string {
+    return tempDir
 }
 
-const withTempFile = (filePath: string, bufferText: string): PromiseLike<string> => {
+function getTempPath(filePath: string): string {
+    return process.platform === 'win32' ? path.join(getTempDir(), filePath.replace(':', '')) : path.join(getTempDir(), filePath)
+}
+
+async function withTempFile(filePath: string, bufferText: string): Promise<string> {
     const tempFilePath = getTempPath(filePath)
-    return new Promise<string>((resolve, reject) => {
-        fs.outputFile(tempFilePath, bufferText, err => {
-            if (err) {
-                reject('error with file')
-            } else {
-                resolve(tempFilePath)
-            }
-        })
-    })
+    await fs.outputFile(tempFilePath, bufferText)
+    return tempFilePath
 }
 
 function debuggerApiOf(client: ServerConnection): DebuggerApi {
-
     return {
         start(): PromiseLike<True | False> {
             const req = { typehint: 'DebugRunReq' }
@@ -105,7 +96,6 @@ function debuggerApiOf(client: ServerConnection): DebuggerApi {
 }
 
 export function apiOf(client: ServerConnection): Api {
-
     return {
         onEvents(listener: EventHandler, once?: boolean): Cancellable {
             return client.onEvents(listener, once)
@@ -133,7 +123,7 @@ export function apiOf(client: ServerConnection): Api {
             })
         },
 
-        getSymbolAtPoint(path: string, offset: number): PromiseLike<SymbolInfo> {
+        async getSymbolAtPoint(path: string, offset: number): Promise<SymbolInfo> {
             const req = {
                 file: path,
                 point: offset,

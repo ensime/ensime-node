@@ -1,35 +1,25 @@
 /* tslint:disable max-line-length no-console */
 import * as path from 'path'
-import * as temp from 'temp'
 
 import { readFile } from '../lib/file-utils'
 
 import loglevel = require('loglevel')
 import {EnsimeInstance} from '../lib/instance'
 import {Api} from '../lib/server-api/server-api'
-import {ServerConnection} from '../lib/server-api/server-connection'
 import {
     AnalyzerReady,
     ClearAllScalaNotes,
     CompletionsResponse,
-    Event,
     FullTypeCheckComplete,
-    ImplicitInfo,
-    ImplicitInfos,
-    ImportSuggestions,
     IndexerReady,
     NewScalaNotes,
-    Note,
-    OrganiseImportsRefactorDesc,
-    RefactorDiffEffect,
     SendBackgroundMessage,
-    TypeInfo,
     Void
 } from '../lib/server-api/server-protocol'
 import {expectEvents, setupProject, stripMargin} from './utils'
 
 const log = loglevel.getLogger('server-api')
-loglevel.setDefaultLevel(LogLevel.INFO)
+loglevel.setDefaultLevel('info')
 loglevel.setLevel('trace')
 
 const voidResponse: Void = { typehint: 'VoidResponse' }
@@ -37,7 +27,7 @@ const voidResponse: Void = { typehint: 'VoidResponse' }
 const CUSTOM_TIMEOUT_INTERVAL = 60000
 const MAX_SAFE_TIMEOUT = Math.pow(2, 31) - 1
 
-process.on('unhandledRejection', error => {
+process.on('unhandledRejection', (error: any) => {
   // Prints "unhandledRejection woops!"
   const util = require('util')
 
@@ -53,13 +43,7 @@ describe('Server API', () => {
     const originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = CUSTOM_TIMEOUT_INTERVAL
 
-    beforeAll(async done => {
-        instance = await setupProject()
-        api = instance.api
-        await instance.addFiles({
-            [path.join('src', 'main', 'scala', 'Test_Types.scala')]: 'case class User(name: String, age: Int)',
-            [path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala')]: 'Success("Test")',
-            [path.join('src', 'main', 'scala', 'Test_Typecheck_File.scala')]: stripMargin`
+    const MAIN_STR = `
               |  import scala.utilss._
               |
               |  object Main {
@@ -68,9 +52,9 @@ describe('Server API', () => {
               |     Success(userName)
               |    }
               |  }
-            `,
-            [path.join('src', 'main', 'scala', 'Test_Completitions.scala')]: 'object Test_Completitions { scala.concurrent.Future. }',
-            [path.join('src', 'main', 'scala', 'Test_Refactor_Patch_Org_Imports.scala')]: stripMargin`
+            `
+
+    const TEMP_STR = `
               | import scala._
               | import java.lang.Integer
               | import scala.Int
@@ -81,6 +65,16 @@ describe('Server API', () => {
               |   def j(): Integer
               | }
             `
+
+    beforeAll(async done => {
+        instance = await setupProject()
+        api = instance.api
+        await instance.addFiles({
+            [path.join('src', 'main', 'scala', 'Test_Types.scala')]: 'case class User(name: String, age: Int)',
+            [path.join('src', 'main', 'scala', 'Test_Import_Suggestions.scala')]: 'Success("Test")',
+            [path.join('src', 'main', 'scala', 'Test_Typecheck_File.scala')]: stripMargin([MAIN_STR]),
+            [path.join('src', 'main', 'scala', 'Test_Completitions.scala')]: 'object Test_Completitions { scala.concurrent.Future. }',
+            [path.join('src', 'main', 'scala', 'Test_Refactor_Patch_Org_Imports.scala')]: stripMargin([TEMP_STR])
         })
         done()
     }, MAX_SAFE_TIMEOUT)

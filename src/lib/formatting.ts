@@ -1,13 +1,13 @@
-import api = require('./server-api/server-protocol')
+import * as _ from 'lodash'
 
-import _ = require('lodash')
+import * as api from './server-api/server-protocol'
 
 const functionMatcher = new RegExp('scala\\.Function\\d{1,2}')
 // const scalaPackageMatcher = new RegExp('scala\\.([\\s\\S]*)');
 const refinementMatcher = new RegExp('(.*)\\$<refinement>') // scalaz.syntax.ApplyOps$<refinement>
 const tupleMatcher = /^\(.*\)/
 
-export const fixQualifiedTypeName = theType => {
+function fixQualifiedTypeName(theType: { fullName: string }): string {
     const refinementMatch = refinementMatcher.exec(theType.fullName)
     if (refinementMatch) {
         return refinementMatch[1]
@@ -16,7 +16,7 @@ export const fixQualifiedTypeName = theType => {
     }
 }
 
-export function fixShortTypeName(theType: api.Type) {
+export function fixShortTypeName(theType: api.Type): string | undefined {
     const refinementMatch = refinementMatcher.exec(theType.fullName)
     if (refinementMatch) {
         return _.last(_.split(theType.fullName, '.'))
@@ -25,35 +25,37 @@ export function fixShortTypeName(theType: api.Type) {
     }
 }
 
-export function typeConstructorFromType(type: api.Type) {
+export function typeConstructorFromType(type: api.Type): string {
     return typeConstructorFromName(type.name)
 }
 
-export function typeConstructorFromName(name: string) {
+export function typeConstructorFromName(name: string): string {
     return _.replace(name, /\[.*\]/, '')
 }
 
+export type TypeNameFormatter = (x: api.Type) => string
+
 // # For hover
 // # typeNameFormatter: function from {name, fullName} -> Html/String
-export const formatTypeWith = (typeNameFormatter: (x: api.Type) => string) => (theType: any) => {
-    function recur(theType) {
 
-        const formatParam = param => {
+function formatTypeWith(typeNameFormatter: TypeNameFormatter): (theType: any) => string | undefined {
+    function recur(theType: any): string | undefined {
+        const formatParam = (param: any) => {
             const type = recur(param[1])
             return `${param[0]}: ${type}`
         }
 
-        const formatParamSection = paramSection => {
+        const formatParamSection = (paramSection: any) => {
             const p = paramSection.params.map(formatParam)
             return p.join(', ')
         }
 
-        const formatParamSections = paramSections => {
+        const formatParamSections = (paramSections: any) => {
             const sections = paramSections.map(formatParamSection)
             return '(' + sections.join(')(') + ')'
         }
 
-        const formatBasicType = theType => {
+        const formatBasicType = (theType: any) => {
             const name = typeNameFormatter(theType)
 
             const typeArgs = theType.typeArgs
@@ -87,10 +89,10 @@ export const formatTypeWith = (typeNameFormatter: (x: api.Type) => string) => (t
             return formatBasicType(theType)
         }
     }
-    return recur(theType)
+    return theType => recur(theType)
 }
 
-export function formatImplicitInfo(info: api.ImplicitInfo): string {
+export function formatImplicitInfo(info: api.ImplicitInfo): string | undefined {
     if (info.typehint === 'ImplicitParamInfo') {
         const implicitParamInfo = info as api.ImplicitParamInfo
         return `Implicit parameters added to call of ${implicitParamInfo.fun.localName}: (${_.map(implicitParamInfo.params, p => p.localName).join(', ')})`

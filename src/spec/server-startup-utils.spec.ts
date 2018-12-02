@@ -6,7 +6,7 @@ import { DotEnsime } from '../lib/types'
 describe('server-startup', () => {
    describe('javaCmdOf', () => {
     it('should find java form .ensime', () => {
-      const dotEnsime = { javaHome: '__javaHome__' } as DotEnsime
+      const dotEnsime = { javaHome: '__javaHome__' } as DotEnsime // tslint:disable-line:no-object-literal-type-assertion
       expect(javaCmdOf(dotEnsime)).toBe(path.join('__javaHome__', 'bin', 'java'))
     })
   })

@@ -435,7 +435,8 @@ describe('formatType', () => {
   it('should format typeargs with tuples correctly', () => {
     const type = {
       name: 'Seq[(ActivityRow, Option[AdminRow], Option[ParticipantCardRow])]',
-      fullName: 'scala.collection.Seq[(se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow])]',
+      fullName: 'scala.collection.Seq[(se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow],' +
+       ' scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow])]',
       pos: {
         typehint: 'OffsetSourcePosition',
         file: '/Users/viktor/dev/projects/uniply-batch/.ensime_cache/dep-src/source-jars/scala/collection/Seq.scala',
@@ -445,7 +446,8 @@ describe('formatType', () => {
       typeArgs: [
         {
           name: '(ActivityRow, Option[AdminRow], Option[ParticipantCardRow])',
-          fullName: '(se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow])',
+          fullName: '(se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], ' +
+           'scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow])',
           typehint: 'BasicTypeInfo',
           typeArgs: [
             {
@@ -519,8 +521,19 @@ describe('formatType', () => {
 
   it('should format really big types too…?', () => {
     const type = {
-      name: 'Query[(Rep[Long], Query[(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]]), (ActivityRow, Option[AdminRow], Option[ParticipantCardRow]), Seq]), (Long, Query[(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]]), (ActivityRow, Option[AdminRow], Option[ParticipantCardRow]), Seq]), Seq]',
-      fullName: 'slick.lifted.Query[(slick.lifted.Rep[scala.Long], slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]), scala.collection.Seq]), (scala.Long, slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]), scala.collection.Seq]), scala.collection.Seq]',
+      name: 'Query[(Rep[Long], Query[(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]]), (ActivityRow, Option[AdminRow],' +
+       ' Option[ParticipantCardRow]), Seq]), (Long, Query[(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]]), ' +
+       '(ActivityRow, Option[AdminRow], Option[ParticipantCardRow]), Seq]), Seq]',
+      fullName: 'slick.lifted.Query[(slick.lifted.Rep[scala.Long], slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity,' +
+       ' slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], ' +
+       'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]),' +
+       ' (se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow],' +
+       ' scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]),' +
+       ' scala.collection.Seq]), (scala.Long, slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, ' +
+       'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]],' +
+       ' slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, ' +
+       'scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]),' +
+       ' scala.collection.Seq]), scala.collection.Seq]',
       pos: {
         typehint: 'OffsetSourcePosition',
         file: '/Users/viktor/dev/projects/uniply-batch/.ensime_cache/dep-src/source-jars/slick/lifted/Query.scala',
@@ -529,8 +542,13 @@ describe('formatType', () => {
       typehint: 'BasicTypeInfo',
       typeArgs: [
         {
-          name: '(Rep[Long], Query[(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]]), (ActivityRow, Option[AdminRow], Option[ParticipantCardRow]), Seq])',
-          fullName: '(slick.lifted.Rep[scala.Long], slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]), scala.collection.Seq])',
+          name: '(Rep[Long], Query[(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]]), (ActivityRow, Option[AdminRow],' +
+          ' Option[ParticipantCardRow]), Seq])',
+          fullName: '(slick.lifted.Rep[scala.Long], slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, ' +
+          'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], ' +
+          'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, ' +
+          'scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]),' +
+          ' scala.collection.Seq])',
           typehint: 'BasicTypeInfo',
           typeArgs: [
             {
@@ -556,12 +574,17 @@ describe('formatType', () => {
             },
             {
               name: 'Query[(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]]), (ActivityRow, Option[AdminRow], Option[ParticipantCardRow]), Seq]',
-              fullName: 'slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]), scala.collection.Seq]',
+              fullName: 'slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, ' +
+              'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], ' +
+              'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, ' +
+              'scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]),' +
+              ' scala.collection.Seq]',
               typehint: 'BasicTypeInfo',
               typeArgs: [
                 {
                   name: '(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]])',
-                  fullName: '(se.uniply.dfkka.db.TableDefinitions.Activity, slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]])',
+                  fullName: '(se.uniply.dfkka.db.TableDefinitions.Activity, slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]],' +
+                  ' slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]])',
                   typehint: 'BasicTypeInfo',
                   typeArgs: [
                     {
@@ -646,7 +669,8 @@ describe('formatType', () => {
                 },
                 {
                   name: '(ActivityRow, Option[AdminRow], Option[ParticipantCardRow])',
-                  fullName: '(se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow])',
+                  fullName: '(se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], ' +
+                  'scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow])',
                   typehint: 'BasicTypeInfo',
                   typeArgs: [
                     {
@@ -731,7 +755,11 @@ describe('formatType', () => {
         },
         {
           name: '(Long, Query[(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]]), (ActivityRow, Option[AdminRow], Option[ParticipantCardRow]), Seq])',
-          fullName: '(scala.Long, slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]), scala.collection.Seq])',
+          fullName: '(scala.Long, slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, ' +
+          'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], ' +
+          'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, ' +
+          'scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]),' +
+          ' scala.collection.Seq])',
           typehint: 'BasicTypeInfo',
           typeArgs: [
             {
@@ -746,12 +774,17 @@ describe('formatType', () => {
             },
             {
               name: 'Query[(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]]), (ActivityRow, Option[AdminRow], Option[ParticipantCardRow]), Seq]',
-              fullName: 'slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]), scala.collection.Seq]',
+              fullName: 'slick.lifted.Query[(se.uniply.dfkka.db.TableDefinitions.Activity, ' +
+              'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], ' +
+              'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]]), (se.uniply.dfkka.db.TableDefinitions.ActivityRow, ' +
+              'scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow]), ' +
+              'scala.collection.Seq]',
               typehint: 'BasicTypeInfo',
               typeArgs: [
                 {
                   name: '(Activity, Rep[Option[Admin]], Rep[Option[Participantcard]])',
-                  fullName: '(se.uniply.dfkka.db.TableDefinitions.Activity, slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]])',
+                  fullName: '(se.uniply.dfkka.db.TableDefinitions.Activity, slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Admin]], ' +
+                  'slick.lifted.Rep[scala.Option[se.uniply.dfkka.db.TableDefinitions.Participantcard]])',
                   typehint: 'BasicTypeInfo',
                   typeArgs: [
                     {
@@ -836,7 +869,8 @@ describe('formatType', () => {
                 },
                 {
                   name: '(ActivityRow, Option[AdminRow], Option[ParticipantCardRow])',
-                  fullName: '(se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow])',
+                  fullName: '(se.uniply.dfkka.db.TableDefinitions.ActivityRow, scala.Option[se.uniply.dfkka.db.TableDefinitions.AdminRow], ' +
+                  'scala.Option[se.uniply.dfkka.db.TableDefinitions.ParticipantCardRow])',
                   typehint: 'BasicTypeInfo',
                   typeArgs: [
                     {

@@ -49,13 +49,13 @@ export interface Note {
 /** The presentation compiler is providing notes: e.g. errors, warnings. */
 export interface NewScalaNotes extends Event {
   isFull: boolean,
-  notes: [Note]
+  notes: Note[]
 }
 
 /** The presentation compiler is providing notes: e.g. errors, warnings. */
 export interface NewJavaNotes extends Event {
   isFull: boolean,
-  notes: [Note]
+  notes: Note[]
 }
 
 export interface True extends Typehinted {}
@@ -63,7 +63,7 @@ export interface False extends Typehinted {}
 
 export interface ConnectionInfo extends Typehinted {
     pid?: number
-    implementation: [{name: string}]
+    implementation: Array<{name: string}>
     version: string
 }
 
@@ -73,7 +73,7 @@ export interface ImplicitParamInfo extends ImplicitInfo {
     start: number
     end: number
     fun: SymbolInfo // Not really
-    params: [SymbolInfo]
+    params: SymbolInfo[]
     funIsImplicit: boolean
 }
 
@@ -84,7 +84,7 @@ export interface ImplicitConversionInfo extends ImplicitInfo {
 }
 
 export interface ImplicitInfos extends Typehinted {
-    infos: [ImplicitInfo]
+    infos: ImplicitInfo[]
 }
 
 export interface SymbolInfo extends Typehinted {
@@ -95,7 +95,7 @@ export interface SymbolInfo extends Typehinted {
 }
 
 export interface CompletionsResponse extends Typehinted {
-    completions: [Completion]
+    completions: Completion[]
     prefix: string
 }
 
@@ -113,7 +113,7 @@ export interface DeclaredAs extends Typehinted {
 
 export interface EntityInfo extends Typehinted {
     name: string
-    members: [EntityInfo]
+    members: EntityInfo[]
 }
 
 export interface Void extends Typehinted { }
@@ -137,10 +137,10 @@ export interface TypeInfo extends EntityInfo {
     name: string
     declAs: DeclaredAs // "Nil" |
     fullName: string
-    typeArgs: [TypeInfo]
-    members: [EntityInfo]
+    typeArgs: TypeInfo[]
+    members: EntityInfo[]
     pos?: SourcePosition
-    typeParams: [TypeInfo]
+    typeParams: TypeInfo[]
 }
 
 export interface BasicTypeInfo extends TypeInfo {
@@ -149,12 +149,12 @@ export interface BasicTypeInfo extends TypeInfo {
 
 export interface ArrowTypeInfo extends TypeInfo  {
     resultType: TypeInfo
-    paramSections: [ParamSectionInfo]
+    paramSections: ParamSectionInfo[]
 }
 
 export interface ParamSectionInfo extends TypeInfo {
     isImplicit: boolean
-    params: [[any]] // List of pairs of String, TypeInfo
+    params: Array<[string, TypeInfo]> // List of pairs of String, TypeInfo
 }
 
 export interface TypeSig {
@@ -288,7 +288,7 @@ export interface MethodSearchResult extends SymbolSearchResult {
 }
 
 export interface ImportSuggestions extends Typehinted {
-    symLists: [[SymbolSearchResult]]
+    symLists: SymbolSearchResult[][]
 }
 
 export interface DebugVmStatus extends Typehinted {
@@ -308,6 +308,6 @@ export interface Breakpoint extends Typehinted {
 }
 
 export interface BreakpointList extends Typehinted {
-    active: [Breakpoint]
-    pending: [Breakpoint]
+    active: Breakpoint[]
+    pending: Breakpoint[]
 }

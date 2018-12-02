@@ -8,12 +8,7 @@ import { EnsimeInstance, UI } from './instance'
  * # TODO: Should use sourdeDirs of .ensime to do mapping of files -> ensime instance
  */
 export class InstanceManager<T extends UI> {
-
-    private instances: Array<EnsimeInstance<T>>
-
-    constructor() {
-        this.instances = []
-    }
+    private instances: Array<EnsimeInstance<T>> = []
 
     public registerInstance(instance: EnsimeInstance<T>): void {
         this.instances.push(instance)
@@ -37,7 +32,7 @@ export class InstanceManager<T extends UI> {
         _.forEach(this.instances, instance => instance.destroy())
     }
 
-    public firstInstance(): EnsimeInstance<T> {
+    public firstInstance(): EnsimeInstance<T> | undefined {
         return this.instances[0]
     }
 

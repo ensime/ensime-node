@@ -1,4 +1,3 @@
-// import * as Promise from 'bluebird'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 
@@ -28,7 +27,7 @@ const log = loglevel.getLogger('spec-utils')
 temp.track()
 
 class CleanUpFakeUI implements UI {
-    private projectPath
+    private projectPath: string
     constructor(projectPath: string) {
         this.projectPath = projectPath
     }
@@ -50,13 +49,13 @@ export async function setupProject(): Promise<EnsimeInstance<any>> {
     const connection: ServerConnection = await startEnsime(dotEnsimePath)
     log.debug('Got a connected client', connection)
 
-    return await makeInstanceFromPath(dotEnsimePath, connection, new CleanUpFakeUI(projectPath))
+    return makeInstanceFromPath(dotEnsimePath, connection, new CleanUpFakeUI(projectPath))
 }
 
 /**
  * Generates project structure and build.sbt
  */
-async function generateProject(dir: string, scalaVersion: string = '2.11.11', ensimeServerVersion: string = '2.0.0-M1'): Promise<any> {
+async function generateProject(dir: string, scalaVersion: string = '2.11.11', ensimeServerVersion: string = '2.0.0-M1'): Promise<boolean> {
     await fs.ensureDir(path.join(dir, 'project'))
     await fs.ensureDir(path.join(dir, 'src', 'main', 'scala'))
 
@@ -84,7 +83,7 @@ async function generateProject(dir: string, scalaVersion: string = '2.11.11', en
     const pluginsSbtP = await writeFile(path.join(dir, 'project', 'plugins.sbt'),
         `addSbtPlugin("org.ensime" % "sbt-ensime" % "1.12.12")`)
 
-    return await fs.pathExists(path.join(dir, 'build.sbt'))
+    return fs.pathExists(path.join(dir, 'build.sbt'))
 }
 
 /**
@@ -116,21 +115,20 @@ function genDotEnsime(dir: string): PromiseLike<number> {
     })
 }
 
-function startEnsime(dotEnsimePath: string, serverVersion: string = '2.0.0-M1'): PromiseLike<ServerConnection> {
-    return dotEnsimeUtils.parseDotEnsime(dotEnsimePath).then(dotEnsime => {
-        log.debug('got a parsed .ensime')
-        const assemblyJar = process.env.ENSIME_ASSEMBLY_JAR
-        const serverStarter: ServerStarter = !assemblyJar ?
-            (project: DotEnsime) => startServerFromDotEnsimeCP(project)
-            : (project: DotEnsime) => startServerFromAssemblyJar(assemblyJar, project)
+async function startEnsime(dotEnsimePath: string, serverVersion: string = '2.0.0-M1'): Promise<ServerConnection> {
+    const dotEnsime = await dotEnsimeUtils.parseDotEnsime(dotEnsimePath)
+    log.debug('got a parsed .ensime')
+    const assemblyJar = process.env.ENSIME_ASSEMBLY_JAR
+    const serverStarter: ServerStarter = !assemblyJar
+        ? (project: DotEnsime) => startServerFromDotEnsimeCP(project)
+        : (project: DotEnsime) => startServerFromAssemblyJar(assemblyJar, project)
 
-        return clientStarterFromServerStarter(serverStarter)(dotEnsime, serverVersion)
-    })
+    return clientStarterFromServerStarter(serverStarter)(dotEnsime, serverVersion)
 }
 
-export function expectEvents(api: Api, events: [Event]): PromiseLike<{}>   {
-    return new Promise((resolve, reject) => {
-        let evIdx: number = 0
+export async function expectEvents(api: Api, events: Event[]): Promise<Event[]>   {
+    return new Promise<Event[]>((resolve, reject) => {
+        let evIdx = 0
         api.onEvents(event => {
             if (evIdx >= events.length) {
                 return
@@ -143,7 +141,7 @@ export function expectEvents(api: Api, events: [Event]): PromiseLike<{}>   {
     })
 }
 
-export function stripMargin(template, ...expressions) {
+export function stripMargin(template: string[], ...expressions: string[]): string {
   const result = template.reduce((accumulator, part, i) => {
     return accumulator + expressions[i - 1] + part
   })

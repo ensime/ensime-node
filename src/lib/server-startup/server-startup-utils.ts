@@ -1,10 +1,10 @@
+import {spawn, ChildProcess} from 'child_process'
+import fs = require('fs')
+import loglevel = require('loglevel')
+import path = require('path')
+import * as stream from 'stream'
 import {ensureExistsDir} from '../file-utils'
 import {DotEnsime} from '../types'
-import path = require('path')
-import {spawn, ChildProcess} from 'child_process'
-import loglevel = require('loglevel')
-import fs = require('fs')
-import * as stream from 'stream'
 const log = loglevel.getLogger('server-startup')
 
 class EchoStream extends stream.Writable {
@@ -35,15 +35,15 @@ function javaArgsOf(classpath: string[], dotEnsimePath: string, ensimeServerFlag
   return args
 }
 
-export function javaCmdOf(dotEnsime: DotEnsime) {
+export function javaCmdOf(dotEnsime: DotEnsime): string {
     return path.join(dotEnsime.javaHome, 'bin', 'java')
 }
 
-function execEnsime(dotEnsime: DotEnsime, cmd: string, args: string[]): PromiseLike<ChildProcess> {
+async function execEnsime(dotEnsime: DotEnsime, cmd: string, args: string[]): Promise<ChildProcess> {
   const serverLog = fs.createWriteStream(path.join(dotEnsime.cacheDir, 'server.log'))
   const child = spawn(cmd, args)
 
-  let errorMsg
+  let errorMsg: string
   child.stderr.on('data', data => {
     errorMsg += String.fromCharCode.apply(null, data)
   })
@@ -53,7 +53,7 @@ function execEnsime(dotEnsime: DotEnsime, cmd: string, args: string[]): PromiseL
   child.stderr.pipe(serverLog)
   child.stderr.pipe(new EchoStream(log.error))
 
-  return new Promise((resolve, reject) => {
+  return new Promise<ChildProcess>((resolve, reject) => {
     // Wait 5s to check that the process didn't die
     setTimeout(() => resolve(child), 5000)
     child.on('error', err => {
@@ -65,11 +65,12 @@ function execEnsime(dotEnsime: DotEnsime, cmd: string, args: string[]): PromiseL
   })
 }
 
-export function startServerFromClasspath(classpath: string[], dotEnsime: DotEnsime, serverFlags = ''): PromiseLike<ChildProcess> {
+export async function startServerFromClasspath(classpath: string[], dotEnsime: DotEnsime, serverFlags = ''): Promise<ChildProcess> {
   const cmd = javaCmdOf(dotEnsime)
 
   const args = javaArgsOf(classpath, dotEnsime.dotEnsimePath, serverFlags)
   log.debug(`Starting Ensime server with ${cmd} ${args.join(' ')}`)
 
-  return ensureExistsDir(dotEnsime.cacheDir).then(() => execEnsime(dotEnsime, cmd, args))
+  await ensureExistsDir(dotEnsime.cacheDir)
+  return execEnsime(dotEnsime, cmd, args)
 }

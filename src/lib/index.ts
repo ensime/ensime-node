@@ -2,9 +2,9 @@ export {InstanceManager, EnsimeInstance, makeInstanceFromPath, makeInstanceFromR
 
 export {DotEnsime, ServerStarter, pid, serverProtocol, ProxySettings} from './types'
 
-export import formatting = require('./formatting')
 export import dotEnsimeUtils = require('./dotensime-utils')
 export import fileUtils = require('./file-utils')
+export import formatting = require('./formatting')
 import * as ensimeServerStartup from './server-startup'
 export const startServerFromAssemblyJar = ensimeServerStartup.startServerFromAssemblyJar
 export const startServerFromDotEnsimeCP = ensimeServerStartup.startServerFromDotEnsimeCP
