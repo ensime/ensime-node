@@ -43,7 +43,7 @@ async function execEnsime(dotEnsime: DotEnsime, cmd: string, args: string[]): Pr
   const serverLog = fs.createWriteStream(path.join(dotEnsime.cacheDir, 'server.log'))
   const child = spawn(cmd, args)
 
-  let errorMsg: string;
+  let errorMsg: string
   child.stderr.on('data', data => {
     errorMsg += String.fromCharCode.apply(null, data)
   })
@@ -66,11 +66,11 @@ async function execEnsime(dotEnsime: DotEnsime, cmd: string, args: string[]): Pr
 }
 
 export async function startServerFromClasspath(classpath: string[], dotEnsime: DotEnsime, serverFlags = ''): Promise<ChildProcess> {
-  const cmd = javaCmdOf(dotEnsime);
+  const cmd = javaCmdOf(dotEnsime)
 
-  const args = javaArgsOf(classpath, dotEnsime.dotEnsimePath, serverFlags);
-  log.debug(`Starting Ensime server with ${cmd} ${args.join(' ')}`);
+  const args = javaArgsOf(classpath, dotEnsime.dotEnsimePath, serverFlags)
+  log.debug(`Starting Ensime server with ${cmd} ${args.join(' ')}`)
 
-  await ensureExistsDir(dotEnsime.cacheDir);
-  return execEnsime(dotEnsime, cmd, args);
+  await ensureExistsDir(dotEnsime.cacheDir)
+  return execEnsime(dotEnsime, cmd, args)
 }

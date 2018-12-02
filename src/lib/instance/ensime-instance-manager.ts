@@ -8,17 +8,17 @@ import { EnsimeInstance, UI } from './instance'
  * # TODO: Should use sourdeDirs of .ensime to do mapping of files -> ensime instance
  */
 export class InstanceManager<T extends UI> {
-    private instances: Array<EnsimeInstance<T>> = [];
+    private instances: Array<EnsimeInstance<T>> = []
 
     public registerInstance(instance: EnsimeInstance<T>): void {
-        this.instances.push(instance);
+        this.instances.push(instance)
     }
 
     public stopInstance(dotEnsime: DotEnsime): void {
         for (const instance of this.instances) {
             if (instance.rootDir === dotEnsime.rootDir) {
-                instance.destroy();
-                this.instances = _.without(this.instances, instance);
+                instance.destroy()
+                this.instances = _.without(this.instances, instance)
             }
         }
     }

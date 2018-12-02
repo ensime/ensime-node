@@ -10,12 +10,12 @@ export type CallId = number
 export type EventHandler = (ev: Event) => void
 export type Cancellable = () => void
 
-export type CallbackMap<T=any> = Map<CallId, Deferred<T>>
+export type CallbackMap<T= any> = Map<CallId, Deferred<T>>
 
 export interface Deferred<T> {
-    promise: Promise<T>;
-    resolve: (obj: T) => void;
-    reject: (err: any) => void;
+    promise: Promise<T>
+    resolve: (obj: T) => void
+    reject: (err: any) => void
 }
 
 /**
@@ -58,11 +58,11 @@ export class ServerConnection {
      * Post a msg object
      */
     public async post<T extends Typehinted>(msg: any): Promise<T> {
-        let dResolve: any;
-        let dReject: any;
+        let dResolve: any
+        let dReject: any
         const p = new Promise<any>((resolve, reject) => {
-            dResolve = resolve;
-            dReject = reject;
+            dResolve = resolve
+            dReject = reject
         })
 
         const d: Deferred<T> = {
@@ -75,40 +75,40 @@ export class ServerConnection {
         this.callbackMap.set(this.ensimeMessageCounter++, d)
         log.debug('outgoing: ' + wireMsg)
         this.client.send(wireMsg)
-        return d.promise;
+        return d.promise
     }
 
     public async destroy(): Promise<number> {
-        this.client.destroy();
-        return this.killServer();
+        this.client.destroy()
+        return this.killServer()
     }
 
     private async killServer(): Promise<number> {
         return new Promise<number>((resolve, reject) => {
             if (this.serverProcess) {
-                let isClosed = false;
-                this.serverProcess.once("close", code => {
+                let isClosed = false
+                this.serverProcess.once('close', code => {
                     if (!isClosed) {
-                        return resolve(code);
+                        return resolve(code)
                     }
-                });
-                this.serverProcess.once("error", err => {
-                    isClosed = true;
-                    reject(err);
-                });
-                this.serverProcess.kill();
+                })
+                this.serverProcess.once('error', err => {
+                    isClosed = true
+                    reject(err)
+                })
+                this.serverProcess.kill()
             } else {
-                return resolve(0);
+                return resolve(0)
             }
-        });
+        })
     }
 }
 
 export async function createConnection(httpPort: string, serverProcess?: ChildProcess): Promise<ServerConnection> {
-    const callbackMap: CallbackMap = new Map();
-    const serverEvents: EventEmitter = new EventEmitter();
+    const callbackMap: CallbackMap = new Map()
+    const serverEvents: EventEmitter = new EventEmitter()
 
-    serverEvents.setMaxListeners(50);
+    serverEvents.setMaxListeners(50)
 
     function handleIncoming(msg: any): void {
         const json = JSON.parse(msg)

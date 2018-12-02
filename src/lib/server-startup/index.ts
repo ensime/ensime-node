@@ -14,7 +14,7 @@ export async function startServerFromDotEnsimeCP(dotEnsime: DotEnsime, ensimeSer
 }
 
 export async function startServerFromAssemblyJar(assemblyJar: string, dotEnsime: DotEnsime, ensimeServerFlags: string = ''): Promise<ChildProcess> {
-    const cp = [assemblyJar].concat(dotEnsime.compilerJars);
-    log.info('Starting server from assembly jar');
-    return startServerFromClasspath(cp, dotEnsime, ensimeServerFlags);
+    const cp = [assemblyJar].concat(dotEnsime.compilerJars)
+    log.info('Starting server from assembly jar')
+    return startServerFromClasspath(cp, dotEnsime, ensimeServerFlags)
 }

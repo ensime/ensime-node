@@ -21,26 +21,25 @@ import {
 import fs = require('fs-extra')
 import * as path from 'path'
 import * as temp from 'temp'
-import * as util from "util";
+import * as util from 'util'
 
-const outputFileAsync = util.promisify(fs.outputFile);
+const outputFileAsync = util.promisify(fs.outputFile)
 
 temp.track()
-const tempDir = temp.mkdirSync('ensime-temp-files');
+const tempDir = temp.mkdirSync('ensime-temp-files')
 
 function getTempDir(): string {
-    return tempDir;
+    return tempDir
 }
 
 function getTempPath(filePath: string): string {
-    return process.platform === "win32" ? path.join(getTempDir(), filePath.replace(':', '')) : path.join(getTempDir(), filePath);
+    return process.platform === 'win32' ? path.join(getTempDir(), filePath.replace(':', '')) : path.join(getTempDir(), filePath)
 }
 
 async function withTempFile(filePath: string, bufferText: string): Promise<string> {
-    const tempFilePath = getTempPath(filePath);
-    return outputFileAsync(tempFilePath, bufferText);
+    const tempFilePath = getTempPath(filePath)
+    return outputFileAsync(tempFilePath, bufferText)
 }
-
 
 function debuggerApiOf(client: ServerConnection): DebuggerApi {
     return {

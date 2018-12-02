@@ -20,11 +20,11 @@ export function sexpToJObject(msg: any): any {
 }
 
 function isString(item: any): item is string {
-  return typeof item === "string";
+  return typeof item === 'string'
 }
 
 function parseArray(arr: any[]): any {
-  return Array.from(arr).map(element => arrToJObject(element));
+  return Array.from(arr).map(element => arrToJObject(element))
 }
 
 function parseObject(obj: any): any {

@@ -37,9 +37,9 @@ export class EnsimeInstance<T extends UI> {
     }
 
     public async destroy(): Promise<void> {
-        await this.connection.destroy();
+        await this.connection.destroy()
         if (this.ui) {
-            this.ui.destroy();
+            this.ui.destroy()
         }
     }
 

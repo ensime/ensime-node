@@ -116,7 +116,7 @@ function genDotEnsime(dir: string): PromiseLike<number> {
 }
 
 async function startEnsime(dotEnsimePath: string, serverVersion: string = '2.0.0-M1'): Promise<ServerConnection> {
-    const dotEnsime = await dotEnsimeUtils.parseDotEnsime(dotEnsimePath);
+    const dotEnsime = await dotEnsimeUtils.parseDotEnsime(dotEnsimePath)
     log.debug('got a parsed .ensime')
     const assemblyJar = process.env.ENSIME_ASSEMBLY_JAR
     const serverStarter: ServerStarter = !assemblyJar
