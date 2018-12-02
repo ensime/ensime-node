@@ -1,7 +1,6 @@
 import fs = require('fs-extra')
 import * as path from 'path'
 import * as temp from 'temp'
-import * as util from 'util'
 import {OffsetRange, SourceFileInfo} from './server-commons'
 import {Cancellable, EventHandler, ServerConnection} from './server-connection'
 import {
@@ -23,8 +22,6 @@ import {
     Void
 } from './server-protocol'
 
-const outputFileAsync = util.promisify(fs.outputFile)
-
 temp.track()
 const tempDir = temp.mkdirSync('ensime-temp-files')
 
@@ -38,7 +35,7 @@ function getTempPath(filePath: string): string {
 
 async function withTempFile(filePath: string, bufferText: string): Promise<string> {
     const tempFilePath = getTempPath(filePath)
-    await outputFileAsync(tempFilePath, bufferText)
+    await fs.outputFile(tempFilePath, bufferText)
     return tempFilePath
 }
 
