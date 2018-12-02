@@ -28,22 +28,19 @@ export class EnsimeInstance<T extends UI> {
         this.ui = ui
     }
 
-    public addFiles(files: { [path: string]: string}): Promise<{}> {
-        return Promise.all(
-            Object.keys(files).map(fileRelativePath => writeFile(this.pathOf(fileRelativePath), files[fileRelativePath]))
-        )
+    public async addFiles(files: { [path: string]: string}): Promise<void> {
+        await Promise.all(Object.keys(files).map(fileRelativePath => writeFile(this.pathOf(fileRelativePath), files[fileRelativePath])))
     }
 
     public pathOf(relativePath: string): string {
         return path.join(this.rootDir, relativePath)
     }
 
-    public destroy(): PromiseLike<void> {
-        return this.connection.destroy().then(() => {
-            if (this.ui) {
-                this.ui.destroy()
-            }
-        })
+    public async destroy(): Promise<void> {
+        await this.connection.destroy();
+        if (this.ui) {
+            this.ui.destroy();
+        }
     }
 
     public isSourceOf(path: string): boolean {

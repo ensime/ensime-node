@@ -6,10 +6,9 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "declaration": true,
-        "noImplicitAny": false,
         "noLib": false,
         "preserveConstEnums": true,
-        "suppressImplicitAnyIndexErrors": true,
+        "strict": true,
         "sourceMap": true
     },
     "exclude": [

@@ -5,7 +5,7 @@
   "version": "0.10.0",
   "description": "Ensime integration for node.js",
   "scripts": {
-    "prepublish": "typings install; gulp build",
+    "prepublish": "gulp build",
     "test": "jasmine JASMINE_CONFIG_PATH=jasmine.json src/spec/*",
     "test:it": "jasmine JASMINE_CONFIG_PATH=jasmine.json src/spec-integration/*",
     "test:all": "jasmine JASMINE_CONFIG_PATH=jasmine.json",
@@ -19,7 +19,6 @@
   "repository": "https://github.com/ensime/ensime-node",
   "license": "MIT",
   "dependencies": {
-    "bluebird": "3.5.0",
     "chokidar": "1.7.0",
     "fs-extra": "3.0.1",
     "glob": "7.1.2",
@@ -29,7 +28,6 @@
     "ws": "3.0.0"
   },
   "devDependencies": {
-    "@types/bluebird": "3.5.5",
     "@types/chokidar": "1.7.0",
     "@types/fs-extra": "3.0.3",
     "@types/glob": "5.0.30",
@@ -41,7 +39,7 @@
     "@types/ws": "3.0.0",
     "assert": "1.4.1",
     "gulp": "3.9.1",
-    "gulp-sourcemaps": "2.6.0",
+    "gulp-sourcemaps": "2.6.4",
     "gulp-typescript": "3.1.7",
     "istanbul": "1.1.0-alpha.1",
     "jasmine": "2.6.0",
@@ -53,8 +51,7 @@
     "run-sequence": "1.2.2",
     "ts-node": "3.0.6",
     "tslint": "5.4.3",
-    "typescript": "2.3.4",
-    "typings": "2.1.1"
+    "typescript": "2.3.4"
   },
   "engines": {
     "node": ">=6"

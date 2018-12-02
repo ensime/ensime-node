@@ -1,4 +1,3 @@
-import * as Promise from 'bluebird'
 import {ChildProcess} from 'child_process'
 import {EventEmitter} from 'events'
 import * as loglevel from 'loglevel'
@@ -8,9 +7,16 @@ import {Event, Typehinted} from '../server-api/server-protocol'
 const log = loglevel.getLogger('ensime.client')
 
 export type CallId = number
-export type CallbackMap = Map<CallId, Promise.Resolver<any>>
 export type EventHandler = (ev: Event) => void
 export type Cancellable = () => void
+
+export type CallbackMap<T=any> = Map<CallId, Deferred<T>>
+
+export interface Deferred<T> {
+    promise: Promise<T>;
+    resolve: (obj: T) => void;
+    reject: (err: any) => void;
+}
 
 /**
  * A running and connected ensime client
@@ -51,40 +57,60 @@ export class ServerConnection {
     /**
      * Post a msg object
      */
-    public post<T extends Typehinted>(msg: any): PromiseLike<T> {
-        const p = Promise.defer<T>()
+    public async post<T extends Typehinted>(msg: any): Promise<T> {
+        let dResolve: any;
+        let dReject: any;
+        const p = new Promise<any>((resolve, reject) => {
+            dResolve = resolve;
+            dReject = reject;
+        })
+
+        const d: Deferred<T> = {
+            promise: p,
+            resolve: dResolve,
+            reject: dReject
+        }
+
         const wireMsg = `{"req": ${JSON.stringify(msg)}, "callId": ${this.ensimeMessageCounter}}`
-        this.callbackMap.set(this.ensimeMessageCounter++, p)
+        this.callbackMap.set(this.ensimeMessageCounter++, d)
         log.debug('outgoing: ' + wireMsg)
         this.client.send(wireMsg)
-        return p.promise
+        return d.promise;
     }
 
-    public destroy(): PromiseLike<number> {
-        this.client.destroy()
-        if (this.serverProcess) {
-            return this.killServer()
-        }
-        return Promise.resolve(0)
+    public async destroy(): Promise<number> {
+        this.client.destroy();
+        return this.killServer();
     }
 
-    private killServer(): PromiseLike<number> {
-        const p = Promise.defer<number>()
-        this.serverProcess.on('close', code => {
-            p.resolve(code)
-        })
-        this.serverProcess.kill()
-        return p.promise
+    private async killServer(): Promise<number> {
+        return new Promise<number>((resolve, reject) => {
+            if (this.serverProcess) {
+                let isClosed = false;
+                this.serverProcess.once("close", code => {
+                    if (!isClosed) {
+                        return resolve(code);
+                    }
+                });
+                this.serverProcess.once("error", err => {
+                    isClosed = true;
+                    reject(err);
+                });
+                this.serverProcess.kill();
+            } else {
+                return resolve(0);
+            }
+        });
     }
 }
 
-export function createConnection(httpPort: string, serverProcess?: ChildProcess): PromiseLike<ServerConnection> {
-    const callbackMap: CallbackMap = new Map()
-    const serverEvents: EventEmitter = new EventEmitter()
+export async function createConnection(httpPort: string, serverProcess?: ChildProcess): Promise<ServerConnection> {
+    const callbackMap: CallbackMap = new Map();
+    const serverEvents: EventEmitter = new EventEmitter();
 
-    serverEvents.setMaxListeners(50)
+    serverEvents.setMaxListeners(50);
 
-    function handleIncoming(msg) {
+    function handleIncoming(msg: any): void {
         const json = JSON.parse(msg)
         log.debug('incoming: ', json)
         const callId = json.callId
@@ -92,9 +118,9 @@ export function createConnection(httpPort: string, serverProcess?: ChildProcess)
 
         if (callId) {
             try {
-                const p = callbackMap.get(callId)
-                log.debug('resolving promise: ' + p)
-                p.resolve(json.payload)
+                const deferredObj = callbackMap.get(callId)!
+                log.debug('resolving promise: ' + deferredObj.promise)
+                deferredObj.resolve(json.payload)
             } catch (error) {
                 log.trace(`error in callback: ${error}`)
             } finally {

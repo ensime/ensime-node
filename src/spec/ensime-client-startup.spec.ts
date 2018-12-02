@@ -7,14 +7,14 @@ import * as temp from 'temp'
 loglevel.setDefaultLevel(LogLevel.TRACE)
 loglevel.setLevel('trace')
 
-const log = loglevel.getLogger('ensime-cloent-startup-spec')
+// const log = loglevel.getLogger('ensime-cloent-startup-spec')
 
-const testFile = expectedFile => {
+const testFile = (expectedFile: any) => {
   const spy = jasmine.createSpy('callback')
 
   const watcher = chokidar.watch(expectedFile, {
     persistent: true
-  }).on('add', path => {
+  }).on('add', (path: any) => {
     spy()
     return watcher.close()
   })

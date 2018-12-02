@@ -1,15 +1,13 @@
+import * as glob from 'glob'
+import * as _ from 'lodash'
 import {readFile} from './file-utils'
-import lisp = require('./lisp/lisp')
+import * as lisp from './lisp/lisp'
+import * as swankExtras from './lisp/swank-extras'
 import {DotEnsime} from './types'
-import _ = require('lodash')
-import * as Promise from 'bluebird'
-import glob = require('glob')
-import swankExtras = require('./lisp/swank-extras')
 
 const sexpToJObject = swankExtras.sexpToJObject
 
-function readDotEnsime(path: string): PromiseLike<string> {
-
+async function readDotEnsime(path: string): Promise<string> {
     return readFile(path).then(raw => {
         const rows = raw.toString().split(new RegExp('\r?\n'))
         const filtered = rows.filter(l => l.indexOf(';;') !== 0)
@@ -17,40 +15,36 @@ function readDotEnsime(path: string): PromiseLike<string> {
     })
 }
 
-export function parseDotEnsime(path: string): PromiseLike<DotEnsime> {
+export async function parseDotEnsime(path: string): Promise<DotEnsime> {
     // scala version from .ensime config file of project
-    return readDotEnsime(path).then(dotEnsime => {
+    const dotEnsime = readDotEnsime(path)
 
-        const dotEnsimeLisp = lisp.readFromString(dotEnsime)
-        const dotEnsimeJs = sexpToJObject(dotEnsimeLisp)
-        const subprojects = dotEnsimeJs[':subprojects']
-        const sourceRoots = _.flattenDeep(subprojects.map(sp => sp[':source-roots']))
-        const scalaVersion = dotEnsimeJs[':scala-version']
-        const scalaEdition = scalaVersion.substring(0, 4)
+    const dotEnsimeLisp = lisp.readFromString(dotEnsime)
+    const dotEnsimeJs = sexpToJObject(dotEnsimeLisp)
+    const subprojects = dotEnsimeJs[':subprojects']
+    const sourceRoots = _.flattenDeep(subprojects.map((sp: any) => sp[':source-roots']))
+    const scalaVersion = dotEnsimeJs[':scala-version']
+    const scalaEdition = scalaVersion.substring(0, 4)
 
-        const dotEmsime: DotEnsime = {
-            name: dotEnsimeJs[':name'] as string,
-            scalaVersion:  scalaVersion as string,
-            scalaEdition: scalaEdition as string,
-            javaHome:  dotEnsimeJs[':java-home'] as string,
-            javaFlags: dotEnsimeJs[':java-flags'] as string,
-            rootDir: dotEnsimeJs[':root-dir'] as string,
-            cacheDir: dotEnsimeJs[':cache-dir'] as string,
-            compilerJars: dotEnsimeJs[':scala-compiler-jars'] as string,
-            dotEnsimePath: path as string,
-            sourceRoots: sourceRoots as [string],
-            serverJars: dotEnsimeJs[':ensime-server-jars'],
-        }
-
-        return dotEmsime
-    })
+    return {
+        name: dotEnsimeJs[':name'] as string,
+        scalaVersion: scalaVersion as string,
+        scalaEdition: scalaEdition as string,
+        javaHome: dotEnsimeJs[':java-home'] as string,
+        javaFlags: dotEnsimeJs[':java-flags'] as string,
+        rootDir: dotEnsimeJs[':root-dir'] as string,
+        cacheDir: dotEnsimeJs[':cache-dir'] as string,
+        compilerJars: dotEnsimeJs[':scala-compiler-jars'] as string,
+        dotEnsimePath: path as string,
+        sourceRoots: sourceRoots as [string],
+        serverJars: dotEnsimeJs[':ensime-server-jars'],
+    }
 }
 
 // Gives promise of .ensime paths
-export function allDotEnsimesInPaths(paths: [string]): PromiseLike<Array<{ path: string }>> {
-    const globTask = Promise.promisify<[string], string, {}>(glob)
-    const promises = paths.map(dir =>
-        globTask(
+export async function allDotEnsimesInPaths(paths: [string]): Promise<Array<{ path: string }>> {
+    const dotEnsimesUnflattened = await Promise.all(paths.map(dir => {
+        return globAsync(
             '.ensime', {
                 cwd: dir,
                 ignore: '**/{node_modules,.ensime_cache,.git,target,.idea}/**',
@@ -58,14 +52,15 @@ export function allDotEnsimesInPaths(paths: [string]): PromiseLike<Array<{ path:
                 nodir: true,
                 realpath: true,
             })
-    )
-    const promise = Promise.all(promises)
-    return promise.then(dotEnsimesUnflattened => {
-        const thang = _.flattenDeep<string>(dotEnsimesUnflattened)
-        return thang.map((path: string) => ({ path }))
-    })
+    }))
+    return _.flattenDeep<string>(dotEnsimesUnflattened).map(path => ({ path }))
 }
 
-export function dotEnsimesFilter(path: string, stats: any) {
+export function dotEnsimesFilter(path: string, stats: { isDirectory: () => boolean }): boolean {
     return !stats.isDirectory() && !_.endsWith(path, '.ensime')
+}
+async function globAsync(pattern: string, options: glob.IOptions): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+        glob(pattern, options, (err, matches) => err ? reject(err) : resolve(matches))
+    })
 }
