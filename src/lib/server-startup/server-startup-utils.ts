@@ -1,10 +1,10 @@
+import {spawn, ChildProcess} from 'child_process'
+import fs = require('fs')
+import loglevel = require('loglevel')
+import path = require('path')
+import * as stream from 'stream'
 import {ensureExistsDir} from '../file-utils'
 import {DotEnsime} from '../types'
-import path = require('path')
-import {spawn, ChildProcess} from 'child_process'
-import loglevel = require('loglevel')
-import fs = require('fs')
-import * as stream from 'stream'
 const log = loglevel.getLogger('server-startup')
 
 class EchoStream extends stream.Writable {

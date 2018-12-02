@@ -49,7 +49,7 @@ export async function setupProject(): Promise<EnsimeInstance<any>> {
     const connection: ServerConnection = await startEnsime(dotEnsimePath)
     log.debug('Got a connected client', connection)
 
-    return await makeInstanceFromPath(dotEnsimePath, connection, new CleanUpFakeUI(projectPath))
+    return makeInstanceFromPath(dotEnsimePath, connection, new CleanUpFakeUI(projectPath))
 }
 
 /**

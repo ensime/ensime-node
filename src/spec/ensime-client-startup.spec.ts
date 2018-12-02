@@ -4,7 +4,7 @@ import * as loglevel from 'loglevel'
 import * as path from 'path'
 import * as temp from 'temp'
 
-loglevel.setDefaultLevel("trace");
+loglevel.setDefaultLevel('trace')
 loglevel.setLevel('trace')
 
 // const log = loglevel.getLogger('ensime-cloent-startup-spec')

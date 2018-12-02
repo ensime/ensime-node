@@ -19,7 +19,7 @@ import {
 import {expectEvents, setupProject, stripMargin} from './utils'
 
 const log = loglevel.getLogger('server-api')
-loglevel.setDefaultLevel("info")
+loglevel.setDefaultLevel('info')
 loglevel.setLevel('trace')
 
 const voidResponse: Void = { typehint: 'VoidResponse' }
